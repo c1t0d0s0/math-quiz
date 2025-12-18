@@ -1,0 +1,172 @@
+body {
+    font-family: 'Mochiy Pop One', sans-serif;
+    background-color: #f0f8ff;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    text-align: center;
+}
+
+.container {
+    background-color: #fff;
+    padding: 20px 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 600px;
+}
+
+h1 {
+    color: #ff6347;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+}
+
+#start-button {
+    background-color: #ff6347;
+    color: white;
+    padding: 20px 40px;
+    border: none;
+    border-radius: 15px;
+    font-size: 2rem;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    font-family: 'Mochiy Pop One', sans-serif;
+    margin-top: 30px;
+}
+
+#start-button:hover {
+    background-color: #e5533d;
+    transform: translateY(-5px);
+}
+
+#game-info-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    color: #007bff;
+}
+
+#score-display {
+    background-color: #007bff;
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 1rem;
+}
+
+#timer {
+    background-color: #ffc107;
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 1rem;
+}
+
+#question {
+    font-size: 2rem;
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #e7f3fe;
+    border-radius: 10px;
+}
+
+.options-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.option {
+    background-color: #007bff;
+    color: white;
+    padding: 20px;
+    border: none;
+    border-radius: 15px;
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    font-family: 'Mochiy Pop One', sans-serif;
+}
+
+.option:hover {
+    background-color: #0056b3;
+    transform: translateY(-5px);
+}
+
+.option.correct {
+    background-color: #28a745;
+}
+
+.option.incorrect {
+    background-color: #dc3545;
+}
+
+.option:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+#result-container {
+    padding: 30px;
+}
+
+#final-score {
+    font-size: 4rem;
+    color: #ff6347;
+    margin: 20px 0;
+}
+
+#restart-button {
+    background-color: #28a745;
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-family: 'Mochiy Pop One', sans-serif;
+}
+
+#restart-button:hover {
+    background-color: #218838;
+}
+
+.hidden {
+    display: none;
+}
+
+/* スマートフォン向けのスタイル */
+@media (max-width: 600px) {
+    .container {
+        padding: 20px;
+    }
+    h1 {
+        font-size: 2rem;
+    }
+    #question {
+        font-size: 1.5rem;
+    }
+    .option {
+        font-size: 1.5rem;
+        padding: 15px;
+    }
+    #game-info-container {
+        font-size: 1rem;
+    }
+    #timer, #score-display {
+        padding: 6px 12px;
+    }
+    #final-score {
+        font-size: 3rem;
+    }
+    #restart-button {
+        font-size: 1.2rem;
+    }
+}

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>わくわく算数タイムアタック</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap" rel="stylesheet">
+    <!-- Google tag (gtag.js) -->
+    <script src="config.js"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      if (typeof GTM_ID !== 'undefined') {
+        const script = document.createElement('script');
+        script.async = true;
+        script.src = `https://www.googletagmanager.com/gtag/js?id=${GTM_ID}`;
+        document.head.appendChild(script);
+        gtag('config', GTM_ID);
+      }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>わくわく算数タイムアタック</h1>
+
+        <div id="start-container">
+            <button id="start-button">スタート！</button>
+        </div>
+
+        <div id="quiz-container" class="hidden">
+            <div id="game-info-container">
+                <div id="score-display">スコア: <span id="score">0</span></div>
+                <div id="timer">のこりじかん: 60びょう</div>
+            </div>
+            <p id="question">もんだいはここにひょうじされます</p>
+            <div id="options" class="options-container">
+                <!-- 選択肢はここに動的に生成されます -->
+            </div>
+        </div>
+
+        <div id="result-container" class="hidden">
+            <h2>けっか はっぴょう！</h2>
+            <p>タイムアップ！</p>
+            <p>あなたのスコアは...</p>
+            <p id="final-score">0もん</p>
+            <button id="restart-button">もういっかいチャレンジ！</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
