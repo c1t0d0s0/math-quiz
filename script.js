@@ -22,6 +22,7 @@ let timer;
 let timeLeft = GAME_TIME_LIMIT;
 let currentQuestion = null; // 現在の問題を保持
 let currentMode = 'addition'; // 現在のモード ('addition' または 'multiplication')
+let questionsAsked = 0; // 出題された問題数
 
 /**
  * 簡単な算数の問題を生成する
@@ -31,8 +32,65 @@ function generateQuestion() {
     let questionText, correctAnswer;
 
     if (currentMode === 'multiplication') {
-        const num1 = Math.floor(Math.random() * 20) + 1;
-        const num2 = Math.floor(Math.random() * 20) + 1;
+        let num1, num2;
+        const rand = Math.random();
+        let type; // '1x1', '1x2', '2x2'
+
+        if (questionsAsked <= 5) {
+            // 最初は1桁を交えた問題を多めに（1桁×1桁: 50%, 1桁×2桁: 40%, 2桁×2桁: 10%）
+            if (rand < 0.50) {
+                type = '1x1';
+            } else if (rand < 0.90) {
+                type = '1x2';
+            } else {
+                type = '2x2';
+            }
+        } else if (questionsAsked <= 12) {
+            // 徐々に2桁同士を増やしていく（1桁×1桁: 20%, 1桁×2桁: 50%, 2桁×2桁: 30%）
+            if (rand < 0.20) {
+                type = '1x1';
+            } else if (rand < 0.70) {
+                type = '1x2';
+            } else {
+                type = '2x2';
+            }
+        } else if (questionsAsked <= 20) {
+            // 2桁×2桁が半分（1桁×1桁: 10%, 1桁×2桁: 40%, 2桁×2桁: 50%）
+            if (rand < 0.10) {
+                type = '1x1';
+            } else if (rand < 0.50) {
+                type = '1x2';
+            } else {
+                type = '2x2';
+            }
+        } else {
+            // 20問目以降は2桁同士が多め（1桁×1桁: 0%, 1桁×2桁: 20%, 2桁×2桁: 80%）
+            if (rand < 0.20) {
+                type = '1x2';
+            } else {
+                type = '2x2';
+            }
+        }
+
+        const getSingleDigit = () => Math.floor(Math.random() * 9) + 1; // 1〜9
+        const getDoubleDigit = () => Math.floor(Math.random() * 11) + 10; // 10〜20
+
+        if (type === '1x1') {
+            num1 = getSingleDigit();
+            num2 = getSingleDigit();
+        } else if (type === '1x2') {
+            if (Math.random() < 0.5) {
+                num1 = getSingleDigit();
+                num2 = getDoubleDigit();
+            } else {
+                num1 = getDoubleDigit();
+                num2 = getSingleDigit();
+            }
+        } else {
+            num1 = getDoubleDigit();
+            num2 = getDoubleDigit();
+        }
+
         questionText = `${num1} × ${num2} = ?`;
         correctAnswer = num1 * num2;
     } else {
@@ -72,6 +130,7 @@ function generateQuestion() {
  * クイズの問題を画面に表示する
  */
 function displayQuestion() {
+    questionsAsked++;
     currentQuestion = generateQuestion();
     questionEl.textContent = currentQuestion.question;
     optionsEl.innerHTML = '';
@@ -101,7 +160,14 @@ function updateTimer() {
  * タイマーの表示を更新する
  */
 function updateTimerDisplay() {
-    timerEl.textContent = `のこりじかん: ${timeLeft}びょう`;
+    if (timeLeft >= 60) {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        const secondsStr = seconds < 10 ? '0' + seconds : seconds;
+        timerEl.textContent = `のこりじかん: ${minutes}ふん${secondsStr}びょう`;
+    } else {
+        timerEl.textContent = `のこりじかん: ${timeLeft}びょう`;
+    }
 }
 
 /**
@@ -157,7 +223,8 @@ function startQuiz(mode) {
         currentMode = mode;
     }
     score = 0;
-    timeLeft = GAME_TIME_LIMIT;
+    questionsAsked = 0;
+    timeLeft = currentMode === 'multiplication' ? 180 : GAME_TIME_LIMIT;
     scoreEl.textContent = score;
     
     startContainer.classList.add('hidden');
