@@ -27,7 +27,11 @@
         <h1>わくわく算数タイムアタック</h1>
 
         <div id="start-container">
-            <button id="start-button">スタート！</button>
+            <p class="select-title">どちらのモードであそぶ？</p>
+            <div class="mode-select-container">
+                <button class="mode-button" id="mode-addition">たしざん・ひきざん</button>
+                <button class="mode-button" id="mode-multiplication">かけざん (1〜20)</button>
+            </div>
         </div>
 
         <div id="quiz-container" class="hidden">
@@ -46,7 +50,10 @@
             <p>タイムアップ！</p>
             <p>あなたのスコアは...</p>
             <p id="final-score">0もん</p>
-            <button id="restart-button">もういっかいチャレンジ！</button>
+            <div class="result-buttons">
+                <button id="restart-button">もういっかいチャレンジ！</button>
+                <button id="back-to-start-button">モードを えらびなおす</button>
+            </div>
         </div>
     </div>
 

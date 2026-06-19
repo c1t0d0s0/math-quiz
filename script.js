@@ -7,8 +7,10 @@ const quizContainerEl = document.getElementById('quiz-container');
 const scoreEl = document.getElementById('score');
 const restartButton = document.getElementById('restart-button');
 const finalScoreEl = document.getElementById('final-score');
-const startButton = document.getElementById('start-button');
 const startContainer = document.getElementById('start-container');
+const modeAdditionButton = document.getElementById('mode-addition');
+const modeMultiplicationButton = document.getElementById('mode-multiplication');
+const backToStartButton = document.getElementById('back-to-start-button');
 
 
 // --- クイズの設定 ---
@@ -19,30 +21,41 @@ let score = 0;
 let timer;
 let timeLeft = GAME_TIME_LIMIT;
 let currentQuestion = null; // 現在の問題を保持
+let currentMode = 'addition'; // 現在のモード ('addition' または 'multiplication')
 
 /**
  * 簡単な算数の問題を生成する
  * @returns {object} 問題、選択肢、正解を持つオブジェクト
  */
 function generateQuestion() {
-    const num1 = Math.floor(Math.random() * 20) + 1;
-    const num2 = Math.floor(Math.random() * 20) + 1;
-    const operator = Math.random() < 0.5 ? '+' : '-';
-    
     let questionText, correctAnswer;
 
-    if (operator === '+' || num1 >= num2) {
-        questionText = `${num1} ${operator} ${num2} = ?`;
-        correctAnswer = operator === '+' ? num1 + num2 : num1 - num2;
+    if (currentMode === 'multiplication') {
+        const num1 = Math.floor(Math.random() * 20) + 1;
+        const num2 = Math.floor(Math.random() * 20) + 1;
+        questionText = `${num1} × ${num2} = ?`;
+        correctAnswer = num1 * num2;
     } else {
-        // 引き算で答えがマイナスにならないように調整
-        questionText = `${num2} - ${num1} = ?`;
-        correctAnswer = num2 - num1;
+        const num1 = Math.floor(Math.random() * 20) + 1;
+        const num2 = Math.floor(Math.random() * 20) + 1;
+        const operator = Math.random() < 0.5 ? '+' : '-';
+        
+        if (operator === '+' || num1 >= num2) {
+            questionText = `${num1} ${operator} ${num2} = ?`;
+            correctAnswer = operator === '+' ? num1 + num2 : num1 - num2;
+        } else {
+            // 引き算で答えがマイナスにならないように調整
+            questionText = `${num2} - ${num1} = ?`;
+            correctAnswer = num2 - num1;
+        }
     }
 
     const options = new Set([correctAnswer]);
+    const diffLimit = currentMode === 'multiplication' ? 30 : 5;
+
     while (options.size < 4) {
-        const wrongAnswer = Math.max(0, correctAnswer + (Math.floor(Math.random() * 10) - 5));
+        const lowerLimit = currentMode === 'multiplication' ? 1 : 0;
+        const wrongAnswer = Math.max(lowerLimit, correctAnswer + (Math.floor(Math.random() * (diffLimit * 2 + 1)) - diffLimit));
         if (wrongAnswer !== correctAnswer) {
             options.add(wrongAnswer);
         }
@@ -137,8 +150,12 @@ function showResults() {
 
 /**
  * クイズを開始する
+ * @param {string} mode - ゲームモード ('addition' または 'multiplication')
  */
-function startQuiz() {
+function startQuiz(mode) {
+    if (mode) {
+        currentMode = mode;
+    }
     score = 0;
     timeLeft = GAME_TIME_LIMIT;
     scoreEl.textContent = score;
@@ -155,7 +172,19 @@ function startQuiz() {
     timer = setInterval(updateTimer, 1000);
 }
 
+/**
+ * スタート画面に戻る
+ */
+function showStartScreen() {
+    clearInterval(timer);
+    quizContainerEl.classList.add('hidden');
+    resultContainerEl.classList.add('hidden');
+    startContainer.classList.remove('hidden');
+}
+
 
 // --- イベントリスナー ---
-startButton.addEventListener('click', startQuiz);
-restartButton.addEventListener('click', startQuiz);
+modeAdditionButton.addEventListener('click', () => startQuiz('addition'));
+modeMultiplicationButton.addEventListener('click', () => startQuiz('multiplication'));
+restartButton.addEventListener('click', () => startQuiz(currentMode));
+backToStartButton.addEventListener('click', showStartScreen);
