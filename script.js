@@ -111,6 +111,20 @@ function generateQuestion() {
     const options = new Set([correctAnswer]);
     const diffLimit = currentMode === 'multiplication' ? 30 : 5;
 
+    // 掛け算モードの場合、少なくとも1つの誤答は正答と同じ下一桁を持つようにする
+    if (currentMode === 'multiplication') {
+        const steps = [-30, -20, -10, 10, 20, 30];
+        // 有効な誤答が見つかるまでループ
+        while (options.size < 2) {
+            const randomStep = steps[Math.floor(Math.random() * steps.length)];
+            const wrongAnswer = correctAnswer + randomStep;
+            if (wrongAnswer > 0 && wrongAnswer !== correctAnswer) {
+                options.add(wrongAnswer);
+            }
+        }
+    }
+
+    // 残りの誤答を生成する
     while (options.size < 4) {
         const lowerLimit = currentMode === 'multiplication' ? 1 : 0;
         const wrongAnswer = Math.max(lowerLimit, correctAnswer + (Math.floor(Math.random() * (diffLimit * 2 + 1)) - diffLimit));
