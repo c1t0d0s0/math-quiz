@@ -274,47 +274,135 @@ function generateDecimalsQuestion() {
     };
 }
 
+function gcd(a, b) {
+    return b === 0 ? a : gcd(b, a % b);
+}
+
+function lcm(a, b) {
+    return (a * b) / gcd(a, b);
+}
+
 /**
- * ぶんすうの問題を生成（同分母のたし算・ひき算）
+ * ぶんすうの問題を生成（同分母・異分母の通分足し算・引き算）
  */
 function generateFractionsQuestion() {
-    const denominator = Math.floor(Math.random() * 7) + 3; // 分母 3〜9
-    const op = Math.random() < 0.5 ? '+' : '-';
-    let num1, num2, resultNum, questionText, correctAnswer;
+    const isDifferentDenominator = Math.random() < 0.5; // 50% 異分母問題
 
-    if (op === '+') {
-        num1 = Math.floor(Math.random() * (denominator - 2)) + 1;
-        num2 = Math.floor(Math.random() * (denominator - num1 - 1)) + 1;
-        resultNum = num1 + num2;
-        questionText = `${num1}/${denominator} + ${num2}/${denominator} = ?`;
-    } else {
-        num1 = Math.floor(Math.random() * (denominator - 2)) + 2;
-        num2 = Math.floor(Math.random() * (num1 - 1)) + 1;
-        resultNum = num1 - num2;
-        questionText = `${num1}/${denominator} - ${num2}/${denominator} = ?`;
-    }
+    if (!isDifferentDenominator) {
+        // 同分母の問題
+        const denominator = Math.floor(Math.random() * 7) + 3; // 分母 3〜9
+        const op = Math.random() < 0.5 ? '+' : '-';
+        let num1, num2, resultNum, questionText, correctAnswer;
 
-    correctAnswer = `${resultNum}/${denominator}`;
-    const options = new Set([correctAnswer]);
-
-    // 誤答の生成（分子だけ変える、または分母も足してしまう定番ミス）
-    if (op === '+') {
-        options.add(`${resultNum}/${denominator + denominator}`); // 分母も足してしまうミス
-    }
-    
-    while (options.size < 4) {
-        const wrongResultNum = Math.max(1, resultNum + (Math.floor(Math.random() * 5) - 2));
-        const wrongOption = `${wrongResultNum}/${denominator}`;
-        if (wrongOption !== correctAnswer) {
-            options.add(wrongOption);
+        if (op === '+') {
+            num1 = Math.floor(Math.random() * (denominator - 2)) + 1;
+            num2 = Math.floor(Math.random() * (denominator - num1 - 1)) + 1;
+            resultNum = num1 + num2;
+            questionText = `${num1}/${denominator} + ${num2}/${denominator} = ?`;
+        } else {
+            num1 = Math.floor(Math.random() * (denominator - 2)) + 2;
+            num2 = Math.floor(Math.random() * (num1 - 1)) + 1;
+            resultNum = num1 - num2;
+            questionText = `${num1}/${denominator} - ${num2}/${denominator} = ?`;
         }
-    }
 
-    return {
-        question: questionText,
-        options: Array.from(options).sort(() => Math.random() - 0.5),
-        answer: correctAnswer
-    };
+        correctAnswer = `${resultNum}/${denominator}`;
+        const options = new Set([correctAnswer]);
+
+        // 誤答の生成（分子だけ変える、または分母も足してしまう定番ミス）
+        if (op === '+') {
+            options.add(`${resultNum}/${denominator + denominator}`); // 分母も足してしまうミス
+        }
+        
+        while (options.size < 4) {
+            const wrongResultNum = Math.max(1, resultNum + (Math.floor(Math.random() * 5) - 2));
+            const wrongOption = `${wrongResultNum}/${denominator}`;
+            if (wrongOption !== correctAnswer) {
+                options.add(wrongOption);
+            }
+        }
+
+        return {
+            question: questionText,
+            options: Array.from(options).sort(() => Math.random() - 0.5),
+            answer: correctAnswer
+        };
+    } else {
+        // 異分母の問題（通分が必要）
+        const denomPairs = [
+            [2, 3], [2, 4], [2, 5], [3, 4], [3, 6], [4, 6], [4, 8], [3, 5], [2, 6]
+        ];
+        const pair = denomPairs[Math.floor(Math.random() * denomPairs.length)];
+        let d1 = pair[0];
+        let d2 = pair[1];
+        if (Math.random() < 0.5) {
+            [d1, d2] = [d2, d1];
+        }
+
+        const n1 = Math.floor(Math.random() * (d1 - 1)) + 1;
+        const n2 = Math.floor(Math.random() * (d2 - 1)) + 1;
+        const op = Math.random() < 0.5 ? '+' : '-';
+
+        let finalN, finalD, questionText;
+
+        const commonD = lcm(d1, d2);
+        const scaledN1 = n1 * (commonD / d1);
+        const scaledN2 = n2 * (commonD / d2);
+
+        if (op === '+') {
+            finalN = scaledN1 + scaledN2;
+            finalD = commonD;
+            questionText = `${n1}/${d1} + ${n2}/${d2} = ?`;
+        } else {
+            if (scaledN1 >= scaledN2) {
+                finalN = scaledN1 - scaledN2;
+                questionText = `${n1}/${d1} - ${n2}/${d2} = ?`;
+            } else {
+                finalN = scaledN2 - scaledN1;
+                questionText = `${n2}/${d2} - ${n1}/${d1} = ?`;
+            }
+            finalD = commonD;
+        }
+
+        if (finalN === 0) {
+            finalN = 1;
+        }
+        const g = gcd(finalN, finalD);
+        const ansN = finalN / g;
+        const ansD = finalD / g;
+
+        const correctAnswer = ansD === 1 ? `${ansN}` : `${ansN}/${ansD}`;
+        const options = new Set([correctAnswer]);
+
+        // 定番ミス1: 通分せずに分子と分母をそれぞれ足す/引く
+        const wrongDirectN = op === '+' ? n1 + n2 : Math.abs(n1 - n2) || 1;
+        const wrongDirectD = d1 + d2;
+        options.add(`${wrongDirectN}/${wrongDirectD}`);
+
+        // 定番ミス2: 分子の計算ミス
+        const wrongScaleN = Math.max(1, ansN + 1);
+        options.add(ansD === 1 ? `${wrongScaleN}` : `${wrongScaleN}/${ansD}`);
+
+        const wrongScaleN2 = Math.max(1, ansN - 1);
+        if (wrongScaleN2 !== ansN) {
+            options.add(ansD === 1 ? `${wrongScaleN2}` : `${wrongScaleN2}/${ansD}`);
+        }
+
+        while (options.size < 4) {
+            const rN = Math.max(1, ansN + Math.floor(Math.random() * 5) - 2);
+            const rD = ansD === 1 ? 1 : Math.max(2, ansD + Math.floor(Math.random() * 3) - 1);
+            const optStr = rD === 1 ? `${rN}` : `${rN}/${rD}`;
+            if (optStr !== correctAnswer) {
+                options.add(optStr);
+            }
+        }
+
+        return {
+            question: questionText,
+            options: Array.from(options).sort(() => Math.random() - 0.5),
+            answer: correctAnswer
+        };
+    }
 }
 
 /**
