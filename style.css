@@ -1,233 +1,362 @@
 body {
     font-family: 'Mochiy Pop One', sans-serif;
-    background-color: #f0f8ff;
-    color: #333;
+    background: linear-gradient(135deg, #e0f2fe 0%, #f0fdf4 100%);
+    color: #2d3748;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     margin: 0;
+    padding: 20px 10px;
+    box-sizing: border-box;
     text-align: center;
 }
 
 .container {
-    background-color: #fff;
-    padding: 20px 40px;
-    border-radius: 20px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-    width: 90%;
-    max-width: 600px;
+    background-color: #ffffff;
+    padding: 25px 30px;
+    border-radius: 24px;
+    box-shadow: 0 20px 35px rgba(0, 0, 0, 0.08), 0 5px 15px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 720px;
 }
 
 h1 {
     color: #ff6347;
-    font-size: 2.5rem;
-    margin-bottom: 20px;
+    font-size: 2.2rem;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 0px #ffe5df;
 }
 
 .select-title {
-    font-size: 1.5rem;
-    color: #555;
-    margin-bottom: 20px;
+    font-size: 1.2rem;
+    color: #4a5568;
+    margin-bottom: 15px;
 }
 
-.mode-select-container {
+/* 学年タブ */
+.grade-tabs {
     display: flex;
-    flex-direction: column;
-    gap: 20px;
-    margin-top: 20px;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.grade-tab {
+    background-color: #edf2f7;
+    color: #4a5568;
+    border: 2px solid transparent;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    font-family: 'Mochiy Pop One', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.grade-tab:hover {
+    background-color: #e2e8f0;
+}
+
+.grade-tab.active {
+    background-color: #3182ce;
+    color: white;
+    box-shadow: 0 4px 10px rgba(49, 130, 206, 0.3);
+}
+
+/* モード選択グリッド */
+.mode-select-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.mode-card {
+    display: flex;
+}
+
+.mode-card.hidden-by-filter {
+    display: none !important;
 }
 
 .mode-button {
-    color: white;
-    padding: 20px 30px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px 20px;
     border: none;
-    border-radius: 15px;
-    font-size: 1.7rem;
+    border-radius: 18px;
+    color: white;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     font-family: 'Mochiy Pop One', sans-serif;
+    text-align: left;
+    position: relative;
+    overflow: hidden;
 }
 
 .mode-button:hover {
-    transform: translateY(-5px);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
+.mode-badge {
+    background-color: rgba(255, 255, 255, 0.25);
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    margin-bottom: 6px;
+    backdrop-filter: blur(4px);
+}
+
+.mode-title {
+    font-size: 1.25rem;
+    margin-bottom: 4px;
+}
+
+.mode-desc {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    margin-bottom: 10px;
+    font-family: sans-serif;
+    font-weight: 500;
+}
+
+.high-score-tag {
+    font-size: 0.8rem;
+    background-color: rgba(0, 0, 0, 0.18);
+    padding: 3px 10px;
+    border-radius: 10px;
+    align-self: flex-end;
+}
+
+/* 各モードのカラーテーマ */
 #mode-addition {
-    background-color: #ff6347;
-}
-
-#mode-addition:hover {
-    background-color: #e5533d;
+    background: linear-gradient(135deg, #ff6347, #ee5253);
 }
 
 #mode-multiplication {
-    background-color: #28a745;
+    background: linear-gradient(135deg, #10b981, #059669);
 }
 
-#mode-multiplication:hover {
-    background-color: #218838;
+#mode-division {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
 }
 
-.result-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    align-items: center;
-    margin-top: 20px;
+#mode-decimals {
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
 }
 
-#back-to-start-button {
-    background-color: #007bff;
-    color: white;
-    padding: 15px 30px;
-    border: none;
-    border-radius: 10px;
-    font-size: 1.5rem;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    font-family: 'Mochiy Pop One', sans-serif;
+#mode-fractions {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
 }
 
-#back-to-start-button:hover {
-    background-color: #0056b3;
+#mode-mixed {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
 }
 
-@media (min-width: 600px) {
-    .mode-select-container {
-        flex-direction: row;
-        justify-content: center;
-    }
-    .result-buttons {
-        flex-direction: row;
-        justify-content: center;
-    }
-}
-
+/* クイズ画面 */
 #game-info-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    font-size: 1.2rem;
-    color: #007bff;
 }
 
 #score-display {
-    background-color: #007bff;
+    background-color: #3b82f6;
     color: #fff;
-    padding: 8px 15px;
+    padding: 8px 18px;
     border-radius: 20px;
-    font-size: 1rem;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.25);
 }
 
 #timer {
-    background-color: #ffc107;
+    background-color: #f59e0b;
     color: #fff;
-    padding: 8px 15px;
+    padding: 8px 18px;
     border-radius: 20px;
-    font-size: 1rem;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 10px rgba(245, 158, 11, 0.25);
+}
+
+#question-box {
+    background-color: #f0f9ff;
+    border: 3px solid #bae6fd;
+    border-radius: 16px;
+    padding: 24px 15px;
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 90px;
 }
 
 #question {
-    font-size: 2rem;
-    margin-bottom: 30px;
-    padding: 20px;
-    background-color: #e7f3fe;
-    border-radius: 10px;
+    font-size: 2.1rem;
+    margin: 0;
+    color: #1e293b;
+    line-height: 1.4;
 }
 
+/* 選択肢ボタン */
 .options-container {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
 }
 
 .option {
-    background-color: #007bff;
+    background-color: #3b82f6;
     color: white;
-    padding: 20px;
+    padding: 18px 10px;
     border: none;
-    border-radius: 15px;
-    font-size: 1.8rem;
+    border-radius: 16px;
+    font-size: 1.6rem;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s;
+    transition: background-color 0.2s, transform 0.15s, box-shadow 0.2s;
     font-family: 'Mochiy Pop One', sans-serif;
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2);
 }
 
-.option:hover {
-    background-color: #0056b3;
-    transform: translateY(-5px);
+.option:hover:not(:disabled) {
+    background-color: #2563eb;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(59, 130, 246, 0.3);
 }
 
 .option.correct {
-    background-color: #28a745;
+    background-color: #10b981 !important;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    animation: pop 0.3s ease;
 }
 
 .option.incorrect {
-    background-color: #dc3545;
+    background-color: #ef4444 !important;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+    animation: shake 0.3s ease;
 }
 
 .option:disabled {
     cursor: not-allowed;
-    opacity: 0.7;
+    opacity: 0.85;
 }
 
+/* 結果画面 */
 #result-container {
-    padding: 30px;
+    padding: 20px 10px;
+}
+
+.new-record {
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 1.1rem;
+    display: inline-block;
+    margin-bottom: 15px;
+    animation: bounce 0.6s infinite alternate;
 }
 
 #final-score {
-    font-size: 4rem;
+    font-size: 3.5rem;
     color: #ff6347;
-    margin: 20px 0;
+    margin: 15px 0 10px 0;
+}
+
+.result-info {
+    font-size: 1rem;
+    color: #64748b;
+    margin-bottom: 25px;
+}
+
+.result-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
 }
 
 #restart-button {
-    background-color: #28a745;
+    background-color: #10b981;
     color: white;
-    padding: 15px 30px;
+    padding: 14px 28px;
     border: none;
-    border-radius: 10px;
-    font-size: 1.5rem;
+    border-radius: 14px;
+    font-size: 1.3rem;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.2s, transform 0.2s;
     font-family: 'Mochiy Pop One', sans-serif;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 #restart-button:hover {
-    background-color: #218838;
+    background-color: #059669;
+    transform: translateY(-2px);
+}
+
+#back-to-start-button {
+    background-color: #64748b;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 14px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-family: 'Mochiy Pop One', sans-serif;
+}
+
+#back-to-start-button:hover {
+    background-color: #475569;
 }
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
-/* スマートフォン向けのスタイル */
-@media (max-width: 600px) {
-    .container {
-        padding: 20px;
+/* アニメーション */
+@keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+    100% { transform: scale(1); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+}
+
+@keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-6px); }
+}
+
+@media (min-width: 600px) {
+    .result-buttons {
+        flex-direction: row;
     }
+}
+
+@media (max-width: 480px) {
     h1 {
-        font-size: 2rem;
+        font-size: 1.7rem;
     }
     #question {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
+    }
+    .options-container {
+        grid-template-columns: 1fr;
     }
     .option {
-        font-size: 1.5rem;
-        padding: 15px;
-    }
-    #game-info-container {
-        font-size: 1rem;
-    }
-    #timer, #score-display {
-        padding: 6px 12px;
-    }
-    #final-score {
-        font-size: 3rem;
-    }
-    #restart-button {
-        font-size: 1.2rem;
+        font-size: 1.4rem;
+        padding: 14px;
     }
 }
