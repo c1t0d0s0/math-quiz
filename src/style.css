@@ -360,3 +360,100 @@ h1 {
         padding: 14px;
     }
 }
+
+/* 文章問題モード */
+#mode-word-low {
+    background: linear-gradient(135deg, #ec4899, #db2777);
+}
+
+#mode-word-mid {
+    background: linear-gradient(135deg, #14b8a6, #0d9488);
+}
+
+#mode-word-high {
+    background: linear-gradient(135deg, #f97316, #c2410c);
+}
+
+.word-mode #question-box {
+    justify-content: flex-start;
+    padding: 20px 22px;
+}
+
+.word-mode #question {
+    font-family: 'Hiragino Maru Gothic ProN', 'BIZ UDPGothic', 'Yu Gothic', 'Meiryo', sans-serif;
+    font-weight: 700;
+    font-size: 1.3rem;
+    line-height: 1.9;
+    text-align: left;
+}
+
+/* 低学年は分かち書きなので、空白のところだけで改行する */
+.word-low #question {
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+}
+
+.word-mode .option {
+    font-size: 1.25rem;
+    padding: 16px 10px;
+    line-height: 1.4;
+}
+
+@media (max-width: 480px) {
+    .word-mode #question {
+        font-size: 1.1rem;
+    }
+    .word-mode .option {
+        font-size: 1.1rem;
+        padding: 12px;
+    }
+}
+
+/* 校正用のパターン一覧（開発時のみ） */
+.pattern-list {
+    background: #fff;
+    max-width: 960px;
+    padding: 20px 30px;
+    border-radius: 16px;
+    text-align: left;
+    font-family: sans-serif;
+}
+
+.pattern-list h3 {
+    border-bottom: 2px solid #bae6fd;
+    padding-bottom: 4px;
+}
+
+.pattern-list dt {
+    line-height: 1.7;
+}
+
+.pattern-list code {
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+.pattern-list dd {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 4px 0 14px 0;
+}
+
+.pattern-list dd span {
+    background: #edf2f7;
+    border-radius: 8px;
+    padding: 2px 10px;
+}
+
+.pattern-list dd span.answer {
+    background: #10b981;
+    color: #fff;
+}
+
+/* Vue のマウント先。body の中央寄せをそのまま引き継ぐ */
+#app {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}

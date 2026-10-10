@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>算数チャレンジ - 小学校全学年対応</title>
-    <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap" rel="stylesheet">
     <!-- Google tag (gtag.js) -->
     <script src="config.js"></script>
@@ -23,100 +22,7 @@
     </script>
 </head>
 <body>
-    <div class="container">
-        <h1>算数チャレンジ</h1>
-
-        <div id="start-container">
-            <p class="select-title">学年・モードを選んでね！</p>
-            
-            <!-- 学年フィルタータブ -->
-            <div class="grade-tabs">
-                <button class="grade-tab active" data-grade="all">すべて</button>
-                <button class="grade-tab" data-grade="low">1・2年生</button>
-                <button class="grade-tab" data-grade="mid">3・4年生</button>
-                <button class="grade-tab" data-grade="high">5・6年生</button>
-            </div>
-
-            <!-- モード選択グリッド -->
-            <div class="mode-select-grid">
-                <div class="mode-card" data-mode="addition" data-grade="low">
-                    <button class="mode-button" id="mode-addition">
-                        <span class="mode-badge">1・2年</span>
-                        <span class="mode-title">➕ 足し算・引き算</span>
-                        <span class="mode-desc">基本の計算（60秒）</span>
-                        <span class="high-score-tag">最高: <span id="highscore-addition">0</span>問</span>
-                    </button>
-                </div>
-                <div class="mode-card" data-mode="multiplication" data-grade="low mid">
-                    <button class="mode-button" id="mode-multiplication">
-                        <span class="mode-badge">2・3年</span>
-                        <span class="mode-title">✖️ かけ算</span>
-                        <span class="mode-desc">九九〜2桁チャレンジ（3分）</span>
-                        <span class="high-score-tag">最高: <span id="highscore-multiplication">0</span>問</span>
-                    </button>
-                </div>
-                <div class="mode-card" data-mode="division" data-grade="mid">
-                    <button class="mode-button" id="mode-division">
-                        <span class="mode-badge">3・4年</span>
-                        <span class="mode-title">➗ 割り算</span>
-                        <span class="mode-desc">割り切り＆余り計算（2分）</span>
-                        <span class="high-score-tag">最高: <span id="highscore-division">0</span>問</span>
-                    </button>
-                </div>
-                <div class="mode-card" data-mode="decimals" data-grade="mid high">
-                    <button class="mode-button" id="mode-decimals">
-                        <span class="mode-badge">4・5年</span>
-                        <span class="mode-title">🔢 小数</span>
-                        <span class="mode-desc">小数の四則計算（2分）</span>
-                        <span class="high-score-tag">最高: <span id="highscore-decimals">0</span>問</span>
-                    </button>
-                </div>
-                <div class="mode-card" data-mode="fractions" data-grade="high">
-                    <button class="mode-button" id="mode-fractions">
-                        <span class="mode-badge">5・6年</span>
-                        <span class="mode-title">🍰 分数</span>
-                        <span class="mode-desc">通分・異分母の足し算引き算（2分）</span>
-                        <span class="high-score-tag">最高: <span id="highscore-fractions">0</span>問</span>
-                    </button>
-                </div>
-                <div class="mode-card" data-mode="mixed" data-grade="all">
-                    <button class="mode-button" id="mode-mixed">
-                        <span class="mode-badge">全学年</span>
-                        <span class="mode-title">🌟 ミックス</span>
-                        <span class="mode-desc">全部混ざった総合問題（2分）</span>
-                        <span class="high-score-tag">最高: <span id="highscore-mixed">0</span>問</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div id="quiz-container" class="hidden">
-            <div id="game-info-container">
-                <div id="score-display">スコア: <span id="score">0</span></div>
-                <div id="timer">残り時間: 60秒</div>
-            </div>
-            <div id="question-box">
-                <p id="question">問題はここに表示されます</p>
-            </div>
-            <div id="options" class="options-container">
-                <!-- 選択肢はここに動的に生成されます -->
-            </div>
-        </div>
-
-        <div id="result-container" class="hidden">
-            <h2>結果発表！</h2>
-            <div id="new-record-banner" class="new-record hidden">🎉 最高記録 更新！</div>
-            <p>タイムアップ！</p>
-            <p>あなたのスコアは...</p>
-            <p id="final-score">0問</p>
-            <p id="mode-result-info" class="result-info"></p>
-            <div class="result-buttons">
-                <button id="restart-button">もう一回チャレンジ！</button>
-                <button id="back-to-start-button">モードを選び直す</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
 </body>
 </html>
