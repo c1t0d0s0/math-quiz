@@ -1,4 +1,5 @@
 import { defaultRng } from '../generators/rng.js';
+import { createBag } from '../generators/bag.js';
 import { buildQuestion } from './helpers.js';
 
 import lowAddSub from './low/addsub.js';
@@ -20,33 +21,6 @@ export const patterns = {
     high: [...highNumbers, ...highRatio, ...highSpeed, ...highGeometry],
 };
 
-const RECENT_KEY = level => `math_quiz_word_recent_${level}`;
-
-function browserStorage() {
-    try {
-        return globalThis.localStorage || null;
-    } catch {
-        return null;
-    }
-}
-
-function loadRecent(storage, level) {
-    try {
-        const list = JSON.parse(storage?.getItem(RECENT_KEY(level)) || '[]');
-        return Array.isArray(list) ? list : [];
-    } catch {
-        return [];
-    }
-}
-
-function saveRecent(storage, level, recent) {
-    try {
-        storage?.setItem(RECENT_KEY(level), JSON.stringify(recent));
-    } catch {
-        // 保存できなくても出題は続ける
-    }
-}
-
 /** パターン1つから4択問題を作る */
 export function generateFromPattern(pattern, r = defaultRng) {
     return { ...buildQuestion(pattern.generate(r), r), patternId: pattern.id };
@@ -58,25 +32,10 @@ export function generateFromPattern(pattern, r = defaultRng) {
  * 全パターンを一巡するまで同じパターンは出さない。最近出したパターンは保存しておき、
  * 次に袋を作るとき後ろに回すので、プレイのたびに違う問題から始まる。
  */
-export function createWordGenerator(level, r = defaultRng, storage = browserStorage()) {
-    const list = patterns[level];
-    const keep = Math.floor(list.length / 2);
-    let recent = loadRecent(storage, level);
-    let bag = [];
-
-    const refill = () => {
-        const seen = new Set(recent);
-        const shuffled = r.shuffle(list);
-        bag = [...shuffled.filter(p => !seen.has(p.id)), ...shuffled.filter(p => seen.has(p.id))];
-    };
-
-    return () => {
-        if (bag.length === 0) {
-            refill();
-        }
-        const pattern = bag.shift();
-        recent = [...recent.filter(id => id !== pattern.id), pattern.id].slice(-keep);
-        saveRecent(storage, level, recent);
-        return generateFromPattern(pattern, r);
-    };
+export function createWordGenerator(level, r = defaultRng, storage) {
+    const key = `math_quiz_word_recent_${level}`;
+    const next = storage === undefined
+        ? createBag(patterns[level], key, r)
+        : createBag(patterns[level], key, r, storage);
+    return () => generateFromPattern(next(), r);
 }

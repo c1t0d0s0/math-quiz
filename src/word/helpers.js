@@ -130,3 +130,72 @@ export function buildQuestion(res, r) {
         answer: fmt(answer),
     };
 }
+
+// 10択で近い値を作るときの間かく。きりのよい数でも、小さい数なら1ずつにする
+// （110 に対して 10・20・40… のように、かけはなれた値がならぶのをさけるため）
+function choiceStep(answer) {
+    if (!Number.isInteger(answer)) return autoStep(answer);
+    if (answer >= 2000 && answer % 100 === 0) return 100;
+    if (answer >= 300 && answer % 10 === 0) return 10;
+    return 1;
+}
+
+/**
+ * 長文問題用の多肢選択（既定10択）を組み立てる。答えは数値のみ
+ *
+ * q: { text, answer, unit?, prefix?, format?, wrong?, step? }
+ *  - format(v) があれば、数値を表示用の文字列にするのに使う（時こく、分数、比 など）
+ *  - 正解より小さい選択肢の数を先にランダムに決め、その数に合わせて
+ *    典型的な誤り（wrong）と近い値を入れるので、正解の位置はかたよらない
+ *  - 選択肢は小さい順に並べて返す
+ */
+export function buildChoices(q, r, count = 10) {
+    const { text, answer, unit = '', prefix = '', wrong = [] } = q;
+    if (!Number.isFinite(answer) || answer <= 0) {
+        throw new Error(`答えが正の数ではありません (${answer}): ${text}`);
+    }
+    const fmt = q.format || (v => `${prefix}${fmtNum(v)}${unit}`);
+    const isInt = Number.isInteger(answer);
+    const step = q.step ?? choiceStep(answer);
+    const norm = v => Number(fmtNum(v));
+
+    const below = [];
+    const above = [];
+    const labels = new Set([fmt(answer)]);
+    const tryAdd = (raw, list, limit) => {
+        const v = norm(raw);
+        if (list.length >= limit || !Number.isFinite(v) || v <= 0) return false;
+        if (isInt && !Number.isInteger(v)) return false;
+        const label = fmt(v);
+        if (labels.has(label)) return false;
+        labels.add(label);
+        list.push(v);
+        return true;
+    };
+
+    const wantBelow = r.int(0, count - 1);
+    const wantAbove = count - 1 - wantBelow;
+    for (const w of r.shuffle(wrong)) {
+        if (w < answer) tryAdd(w, below, wantBelow);
+        else if (w > answer) tryAdd(w, above, wantAbove);
+    }
+
+    // 近い値で補う。間かくは step の1〜2倍にして、等間かくにならないようにする
+    let v = answer;
+    for (let i = 0; i < 60 && below.length < wantBelow; i++) {
+        v -= step * r.int(1, 2);
+        if (v <= 0) break;
+        tryAdd(v, below, wantBelow);
+    }
+    v = answer;
+    for (let i = 0; i < 200 && below.length + above.length < count - 1; i++) {
+        v += step * r.int(1, 2);
+        tryAdd(v, above, count);
+    }
+    if (below.length + above.length < count - 1) {
+        throw new Error(`選択肢を${count}個作れません: ${text}`);
+    }
+
+    const values = [...below, answer, ...above].sort((a, b) => a - b);
+    return { question: text, options: values.map(fmt), answer: fmt(answer) };
+}

@@ -1,4 +1,6 @@
 <script setup>
+import Hanamaru from './Hanamaru.vue';
+
 defineProps({
     mode: { type: Object, required: true },
     score: { type: Number, required: true },
@@ -8,16 +10,28 @@ defineEmits(['restart', 'back']);
 </script>
 
 <template>
-    <div id="result-container">
-        <h2>結果発表！</h2>
-        <div v-if="isNewRecord" id="new-record-banner" class="new-record">🎉 最高記録 更新！</div>
-        <p>タイムアップ！</p>
-        <p>あなたのスコアは...</p>
-        <p id="final-score">{{ score }}問</p>
-        <p id="mode-result-info" class="result-info">モード: {{ mode.name }}</p>
-        <div class="result-buttons">
-            <button id="restart-button" @click="$emit('restart')">もう一回チャレンジ！</button>
-            <button id="back-to-start-button" @click="$emit('back')">モードを選び直す</button>
-        </div>
-    </div>
+    <main id="result-container" class="result-page">
+        <section class="result">
+            <div class="result-body">
+            <div class="result-main">
+            <div class="result-head">
+                <Hanamaru v-if="score > 0" animated />
+                <div>
+                    <h2>結果発表！</h2>
+                    <p class="result-sub">タイムアップ！　モード: {{ mode.name }}</p>
+                </div>
+            </div>
+            <p v-if="isNewRecord" id="new-record-banner" class="new-record">最高記録 更新！</p>
+            </div>
+            <div class="result-score">
+            <p class="result-label">あなたのスコアは...</p>
+            <p id="final-score">{{ score }}問</p>
+            </div>
+            </div>
+            <div class="result-actions result-buttons">
+                <button id="back-to-start-button" type="button" class="btn" @click="$emit('back')">モードを選び直す</button>
+                <button id="restart-button" type="button" class="btn btn-primary" @click="$emit('restart')">もう一回チャレンジ！</button>
+            </div>
+        </section>
+    </main>
 </template>

@@ -12,16 +12,26 @@ export const GRADES = [
 
 // モード定義。id はハイスコアの保存キーにも使うので変えないこと
 export const MODES = [
-    { id: 'addition', kind: 'calc', name: '足し算・引き算', title: '➕ 足し算・引き算', badge: '1・2年', desc: '基本の計算（60秒）', grades: ['low'], timeLimit: 60 },
-    { id: 'multiplication', kind: 'calc', name: 'かけ算', title: '✖️ かけ算', badge: '2・3年', desc: '九九〜2桁チャレンジ（3分）', grades: ['low', 'mid'], timeLimit: 180 },
-    { id: 'division', kind: 'calc', name: '割り算', title: '➗ 割り算', badge: '3・4年', desc: '割り切り＆余り計算（2分）', grades: ['mid'], timeLimit: 120 },
-    { id: 'decimals', kind: 'calc', name: '小数', title: '🔢 小数', badge: '4・5年', desc: '小数の四則計算（2分）', grades: ['mid', 'high'], timeLimit: 120 },
-    { id: 'fractions', kind: 'calc', name: '分数', title: '🍰 分数', badge: '5・6年', desc: '通分・異分母の足し算引き算（2分）', grades: ['high'], timeLimit: 120 },
-    { id: 'mixed', kind: 'calc', name: '全部ミックス', title: '🌟 ミックス', badge: '全学年', desc: '全部混ざった総合問題（2分）', grades: ['all'], timeLimit: 120 },
-    { id: 'word-low', kind: 'word', level: 'low', name: '文章問題（1・2年）', title: '📖 文章問題', badge: '1・2年', desc: 'おはなしを よんで こたえよう（5分）', grades: ['low'], timeLimit: 300 },
-    { id: 'word-mid', kind: 'word', level: 'mid', name: '文章問題（3・4年）', title: '📖 文章問題', badge: '3・4年', desc: 'わり算・面積・時間などの文章題（5分）', grades: ['mid'], timeLimit: 300 },
-    { id: 'word-high', kind: 'word', level: 'high', name: '文章問題（5・6年）', title: '📖 文章問題', badge: '5・6年', desc: '速さ・割合・比などの文章題（5分）', grades: ['high'], timeLimit: 300 },
+    { id: 'addition', kind: 'calc', name: '足し算・引き算', title: '足し算・引き算', badge: '1・2年', desc: '基本の計算（60秒）', grades: ['low'], timeLimit: 60 },
+    { id: 'multiplication', kind: 'calc', name: 'かけ算', title: 'かけ算', badge: '2・3年', desc: '九九〜2桁チャレンジ（3分）', grades: ['low', 'mid'], timeLimit: 180 },
+    { id: 'division', kind: 'calc', name: '割り算', title: '割り算', badge: '3・4年', desc: '割り切り＆余り計算（2分）', grades: ['mid'], timeLimit: 120 },
+    { id: 'decimals', kind: 'calc', name: '小数', title: '小数', badge: '4・5年', desc: '小数の四則計算（2分）', grades: ['mid', 'high'], timeLimit: 120 },
+    { id: 'fractions', kind: 'calc', name: '分数', title: '分数', badge: '5・6年', desc: '通分・異分母の足し算引き算（2分）', grades: ['high'], timeLimit: 120 },
+    { id: 'mixed', kind: 'calc', name: '全部ミックス', title: 'ミックス', badge: '全学年', desc: '全部混ざった総合問題（2分）', grades: ['all'], timeLimit: 120 },
+    { id: 'word-low', kind: 'word', level: 'low', name: '文章問題（1・2年）', title: '文章問題', badge: '1・2年', desc: 'おはなしを よんで こたえよう（5分）', grades: ['low'], timeLimit: 300 },
+    { id: 'word-mid', kind: 'word', level: 'mid', name: '文章問題（3・4年）', title: '文章問題', badge: '3・4年', desc: 'わり算・面積・時間などの文章題（5分）', grades: ['mid'], timeLimit: 300 },
+    { id: 'word-high', kind: 'word', level: 'high', name: '文章問題（5・6年）', title: '文章問題', badge: '5・6年', desc: '速さ・割合・比などの文章題（5分）', grades: ['high'], timeLimit: 300 },
+    { id: 'long-g3', kind: 'long', level: 'g3', name: '長文チャレンジ（3年）', title: '長文チャレンジ', badge: '3年', desc: '長い文章を読んで小問に答える（時間無制限・10択）', grades: ['mid'], timeLimit: 0 },
+    { id: 'long-g45', kind: 'long', level: 'g45', name: '長文チャレンジ（4・5年）', title: '長文チャレンジ', badge: '4・5年', desc: '旅人算・割合などの受験型長文（時間無制限・10択）', grades: ['mid', 'high'], timeLimit: 0 },
+    { id: 'long-g6', kind: 'long', level: 'g6', name: '長文チャレンジ（6年）', title: '長文チャレンジ', badge: '6年', desc: 'グラフや図を読み取る入試型長文（時間無制限・10択）', grades: ['high'], timeLimit: 0 },
 ];
+
+/** 秒を「6分12秒」の形にする */
+export function formatTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return m > 0 ? `${m}分${s < 10 ? '0' + s : s}秒` : `${s}秒`;
+}
 
 export function findMode(id) {
     return MODES.find(m => m.id === id);
@@ -32,7 +42,7 @@ export function isVisible(mode, grade) {
     return grade === 'all' || mode.grades.includes(grade) || mode.grades.includes('all');
 }
 
-/** 1プレイ分の出題関数を作る */
+/** 1プレイ分の出題関数を作る（長文チャレンジは src/long/index.js の createLongSet を使う） */
 export function createGenerator(mode, r = defaultRng, storage) {
     if (mode.kind === 'word') {
         return storage === undefined

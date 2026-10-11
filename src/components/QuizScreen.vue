@@ -8,7 +8,7 @@ const props = defineProps({
     question: { type: Object, required: true },
     selected: { type: String, default: null },
 });
-defineEmits(['answer']);
+defineEmits(['answer', 'quit']);
 
 const isWord = computed(() => props.mode.kind === 'word');
 
@@ -21,7 +21,7 @@ const timerText = computed(() => {
     return `残り時間: ${t}秒`;
 });
 
-// 回答後: 選んだものが合っていれば緑、まちがいなら赤にして正解を緑で示す
+// 回答後: 選んだものが合っていれば正解の色、まちがいなら赤にして正解も示す
 function optionClass(option) {
     if (props.selected === null) return {};
     const isAnswer = option === props.question.answer;
@@ -33,23 +33,35 @@ function optionClass(option) {
 </script>
 
 <template>
-    <div id="quiz-container" :class="isWord ? ['word-mode', `word-${mode.level}`] : []">
-        <div id="game-info-container">
-            <div id="score-display">スコア: <span id="score">{{ score }}</span></div>
-            <div id="timer">{{ timerText }}</div>
+    <main id="quiz-container" class="quiz" :class="isWord ? ['word-mode', `word-${mode.level}`] : []">
+        <header class="bar">
+            <button type="button" class="back home-btn" @click="$emit('quit')"><span aria-hidden="true">‹</span>ホーム</button>
+            <h1>{{ mode.name }}</h1>
+            <span class="bar-meta">{{ mode.badge }}</span>
+        </header>
+
+        <div id="game-info-container" class="meter">
+            <p id="score-display" class="meter-item"><span class="meter-label">スコア: </span><b id="score" class="meter-num">{{ score }}</b></p>
+            <p id="timer" class="meter-item meter-time" :class="{ 'is-low': timeLeft <= 10 }">{{ timerText }}</p>
         </div>
-        <div id="question-box">
+
+        <!-- 広い画面では、左に問題、右に選択肢をならべる -->
+        <div class="quiz-body">
+        <div id="question-box" class="sheet">
             <p id="question">{{ question.question }}</p>
         </div>
+
         <div id="options" class="options-container">
             <button
                 v-for="option in question.options"
                 :key="option"
+                type="button"
                 class="option"
                 :class="optionClass(option)"
                 :disabled="selected !== null"
                 @click="$emit('answer', option)"
             >{{ option }}</button>
         </div>
-    </div>
+        </div>
+    </main>
 </template>
