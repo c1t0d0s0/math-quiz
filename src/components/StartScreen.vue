@@ -2,6 +2,8 @@
 import { ref, computed } from 'vue';
 import Hanamaru from './Hanamaru.vue';
 import AccountBox from './AccountBox.vue';
+import Monkey from './Monkey.vue';
+import { pt } from '../rewardText.js';
 import { GRADES, MODES, isVisible, formatTime } from '../modes.js';
 import { SET_SIZE, QUESTIONS_PER_PROBLEM } from '../long/index.js';
 
@@ -11,8 +13,9 @@ const props = defineProps({
     account: { type: Object, default: () => ({ available: false }) },
     signIn: { type: Function, default: null },
     signOut: { type: Function, default: null },
+    points: { type: Number, default: 0 },
 });
-defineEmits(['start']);
+defineEmits(['start', 'open']);
 
 const LONG_TOTAL = SET_SIZE * QUESTIONS_PER_PROBLEM;
 
@@ -55,6 +58,7 @@ const isPerfect = mode => mode.kind === 'long' && props.highScores[mode.id] === 
                 <h1 class="brand">算数チャレンジ</h1>
                 <p class="lead">計算から中学受験の長文問題まで。学年をえらんで、ちょうせんしよう。</p>
             </div>
+            <Monkey />
         </header>
 
         <!-- 学年の切りかえ -->
@@ -68,6 +72,17 @@ const isPerfect = mode => mode.kind === 'long' && props.highScores[mode.id] === 
                 @click="grade = g.id"
             ><span class="mode-label">{{ g.label }}</span></button>
         </div>
+        <!-- スタンプカードとリスザルカードは、それぞれのページで見る -->
+        <nav class="reward-links" aria-label="スタンプカードとリスザルカード">
+            <p class="points">
+                <span class="points-label">持っているポイント</span>
+                <b class="points-num">{{ account.loading ? '…' : pt(points) }}</b>
+            </p>
+            <div class="reward-buttons">
+                <button id="open-stamps" type="button" class="btn" @click="$emit('open', 'stamps')">スタンプカード</button>
+                <button id="open-cards" type="button" class="btn" @click="$emit('open', 'cards')">リスザルカード</button>
+            </div>
+        </nav>
         <AccountBox v-if="account.available" :account="account" :sign-in="signIn" :sign-out="signOut" />
         </div>
 

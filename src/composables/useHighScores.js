@@ -1,19 +1,25 @@
-import { reactive, onMounted } from 'vue';
-import { MODES } from '../modes.js';
+import { reactive, computed, onMounted } from 'vue';
+import { MODES, findMode } from '../modes.js';
 import { cloudAvailable, startCloud } from '../cloud/index.js';
 import { isBetter } from '../cloud/records.js';
-import { clearLocalRecords, readLocalRecords, rememberSignedIn, wasSignedIn, writeLocalRecord } from '../cloud/local.js';
+import {
+    clearLocalRecords, readLocalRecords, readLocalSummary, rememberSignedIn, wasSignedIn, writeLocalRecord, writeLocalSummary,
+} from '../cloud/local.js';
+import { balance, buyCard as buy, emptySummary, jstDate, mergeSummary, playReward } from '../rewards.js';
 
-const ASK_MIGRATE = 'この端末にある記録を、アカウントにうつしますか？\n（「キャンセル」をえらぶと、アカウントの記録だけを使います。この端末の記録は、ログアウトするとまた使えます）';
+const ASK_MIGRATE = 'この端末にある記録（最高記録・スタンプ・カード）を、アカウントにうつしますか？\n（「キャンセル」をえらぶと、アカウントの記録だけを使います。この端末の記録は、ログアウトするとまた使えます）';
 
 /**
- * 最高記録の読み書き。
+ * 最高記録と、スタンプ・ポイント・カードの読み書き。
  * ログインしていないときは、この端末の localStorage に保存する。
  * Google でログインしているときは、localStorage には書かず、Firestore に保存する (src/cloud/sync.js)。
  */
 export function useHighScores() {
     const scores = reactive({});
     const times = reactive({});
+    /** スタンプ・「やったね」の記録・カード (src/rewards.js の summary の形) */
+    const rewards = reactive(emptySummary());
+    const points = computed(() => balance(rewards));
     /** アカウント欄に出す状態。status は src/cloud/sync.js の説明を参照 */
     const account = reactive({
         available: cloudAvailable,
@@ -25,15 +31,18 @@ export function useHighScores() {
 
     let sync = null;
     // ログインしているかどうかが分かる前に出た記録。分かったら、その人の保存先に入れる
-    let early = {};
+    let earlyRecords = {};
+    let earlySummary = null;
 
-    function show(records) {
+    function show(records, summary) {
         for (const mode of MODES) {
             scores[mode.id] = records[mode.id]?.score ?? 0;
             times[mode.id] = records[mode.id]?.seconds ?? 0;
         }
+        Object.assign(rewards, mergeSummary(emptySummary(), summary));
     }
-    show(account.loading ? {} : readLocalRecords());
+    if (account.loading) show({}, emptySummary());
+    else show(readLocalRecords(), readLocalSummary());
 
     function refreshAccount(current) {
         // Firebase を読みこみ終わる前によばれることがあるので、わたされたものをおぼえておく
@@ -43,20 +52,36 @@ export function useHighScores() {
         account.loading = sync.status === 'loading' ? account.loading : sync.uid !== null && !sync.loaded;
     }
 
-    function flushEarly() {
-        const pending = early;
-        early = {};
-        for (const [modeId, record] of Object.entries(pending)) save(modeId, record);
-    }
+    /** ログインしているかどうかを、まだ確かめている (前はログインしていた) */
+    const undecided = () => account.status === 'loading' && account.loading;
 
-    function save(modeId, record) {
+    function saveRecord(modeId, record) {
         if (sync?.uid) {
             sync.submit(modeId, record);
-        } else if (account.status === 'loading' && account.loading) {
-            early[modeId] = record;
+        } else if (undecided()) {
+            earlyRecords[modeId] = record;
         } else if (isBetter(record, readLocalRecords()[modeId])) {
             writeLocalRecord(modeId, record);
         }
+    }
+
+    function saveSummary(summary) {
+        if (sync?.uid) {
+            sync.submitSummary(summary);
+        } else if (undecided()) {
+            earlySummary = mergeSummary(earlySummary ?? emptySummary(), summary);
+        } else {
+            writeLocalSummary(mergeSummary(readLocalSummary(), summary));
+        }
+    }
+
+    function flushEarly() {
+        const records = earlyRecords;
+        const summary = earlySummary;
+        earlyRecords = {};
+        earlySummary = null;
+        for (const [modeId, record] of Object.entries(records)) saveRecord(modeId, record);
+        if (summary) saveSummary(summary);
     }
 
     /**
@@ -70,22 +95,48 @@ export function useHighScores() {
         }
         scores[modeId] = record.score;
         times[modeId] = record.seconds;
-        save(modeId, record);
+        saveRecord(modeId, record);
+        return true;
+    }
+
+    /**
+     * 1回のプレイが終わったときによぶ。最高記録を記録し、スタンプとポイントをつける。
+     * total は問題の数 (長文チャレンジだけ)。
+     * もどり値: { isNewRecord, reward }。reward は src/rewards.js の playReward のもどり値
+     */
+    function finish(modeId, score, seconds, total) {
+        const isNewRecord = submit(modeId, score, seconds);
+        const reward = playReward(mergeSummary(emptySummary(), rewards), findMode(modeId), score, total ?? 0, jstDate());
+        if (reward.gained > 0 || reward.stampAdded) {
+            Object.assign(rewards, reward.summary);
+            saveSummary(reward.summary);
+        }
+        return { isNewRecord, reward };
+    }
+
+    /** ポイントとカードを交換する。足りないときや、もう持っているとき、読みこみ中は何もしない */
+    function buyCard(card) {
+        if (account.loading) return false;
+        const next = buy(mergeSummary(emptySummary(), rewards), card);
+        if (!next) return false;
+        Object.assign(rewards, next);
+        saveSummary(next);
         return true;
     }
 
     onMounted(async () => {
-        sync = await startCloud({
+        await startCloud({
             onStatus: refreshAccount,
             onRecords(records, current) {
                 rememberSignedIn(records !== null);
                 refreshAccount(current);
                 // ログインしているかどうかが分かる前に出た記録があれば、ここで保存先に入れる
                 flushEarly();
-                show(records === null ? readLocalRecords() : current.records);
+                if (records === null) show(readLocalRecords(), readLocalSummary());
+                else show(current.records, current.summary);
             },
             askMigrate: () => window.confirm(ASK_MIGRATE),
-            readGuest: readLocalRecords,
+            readGuest: () => ({ records: readLocalRecords(), summary: readLocalSummary() }),
             clearGuest: clearLocalRecords,
         });
     });
@@ -93,8 +144,12 @@ export function useHighScores() {
     return {
         scores,
         times,
+        rewards,
+        points,
         account,
         submit,
+        finish,
+        buyCard,
         signIn: () => sync.signIn(),
         signOut: force => sync.signOut(force),
     };

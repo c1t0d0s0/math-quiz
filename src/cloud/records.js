@@ -1,3 +1,5 @@
+import { emptySummary, mergeSummary } from '../rewards.js';
+
 // 記録（モードごとの最高記録）の形と、2か所にある記録の合わせ方。
 // 画面にも Firebase にも関係しないので、Node だけでテストできる。
 //
@@ -7,7 +9,7 @@
 // ---- Firestore に保存する形 (小学生向けの学習アプリで共通。Wordlynx と同じ) ----
 //
 //   users/{uid}                                その人の情報 (全アプリ共通)。名前やメールアドレスは入れない
-//   users/{uid}/apps/{appId}                   アプリごとの記録のまとめ
+//   users/{uid}/apps/{appId}                   アプリごとの記録のまとめ。スタンプ・ポイントのもと・カード
 //   users/{uid}/apps/{appId}/progress/{itemId} 教材1つごとの記録。このアプリではモードごとの最高記録
 //
 // このアプリの appId は "math-quiz"。
@@ -44,9 +46,31 @@ export function hasRecords(records) {
     return Object.values(records).some(r => r.score > 0);
 }
 
-/** アプリごとのまとめ。このアプリでは共通の項目は使わないので、空で作る */
-export function toAppDoc(now) {
-    return { schema: SCHEMA, updatedAt: now, activeDays: [], completed: [], inventory: {}, spent: {}, settings: {} };
+/**
+ * アプリごとのまとめ。スタンプ・「やったね」の記録・カードを、共通の項目に入れる
+ *   activeDays: スタンプをもらった日 / completed: 「やったね」の記録 / inventory: 交換したリスザルカード
+ */
+export function toAppDoc(summary, now) {
+    return {
+        schema: SCHEMA,
+        updatedAt: now,
+        activeDays: summary.stamps,
+        completed: summary.clears,
+        inventory: Object.fromEntries(summary.cards.map(c => [c.id, { paid: c.paid }])),
+        spent: {},
+        settings: {},
+    };
+}
+
+const strings = v => (Array.isArray(v) ? v.filter(x => typeof x === 'string') : []);
+
+/** Firestore から読んだものは形がくずれているかもしれないので、確かめながらもどす */
+export function fromAppDoc(doc) {
+    const cards = [];
+    for (const [id, item] of Object.entries(doc?.inventory ?? {})) {
+        if (typeof item?.paid === 'number' && item.paid >= 0) cards.push({ id, paid: item.paid });
+    }
+    return mergeSummary(emptySummary(), { stamps: strings(doc?.activeDays), clears: strings(doc?.completed), cards });
 }
 
 export function toProgressDoc(record, now) {

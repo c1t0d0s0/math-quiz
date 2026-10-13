@@ -1,13 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { RecordSync } from '../src/cloud/sync.js';
-import { isBetter, mergeRecords, toProgressDoc, fromProgressDoc, toAppDoc, APP_ID } from '../src/cloud/records.js';
+import { isBetter, mergeRecords, toProgressDoc, fromProgressDoc, toAppDoc, fromAppDoc, APP_ID } from '../src/cloud/records.js';
+import { emptySummary } from '../src/rewards.js';
 
 // ---- 代用品 ----
 
 /** メモリ上の Firestore。fail を true にすると、通信できない状態になる */
 class FakeCloud {
     constructor() {
-        this.summaries = new Set();
+        this.summaries = new Map(); // uid → まとめ (スタンプ・カードなど)
         this.data = new Map(); // uid → { modeId: record }
         this.fail = false;
         this.writes = 0;
@@ -24,16 +25,26 @@ class FakeCloud {
     async loadAll(uid) {
         if (this.delay) await new Promise(r => setTimeout(r, this.delay));
         this.check();
-        return { exists: this.summaries.has(uid), records: JSON.parse(JSON.stringify(this.of(uid))) };
+        return {
+            exists: this.summaries.has(uid),
+            records: JSON.parse(JSON.stringify(this.of(uid))),
+            summary: JSON.parse(JSON.stringify(this.summaries.get(uid) ?? emptySummary())),
+        };
     }
     async loadRecord(uid, id) {
         this.check();
         const r = this.of(uid)[id];
         return r ? { ...r } : null;
     }
-    async saveSummary(uid) {
+    async loadSummary(uid) {
         this.check();
-        this.summaries.add(uid);
+        const s = this.summaries.get(uid);
+        return s ? JSON.parse(JSON.stringify(s)) : null;
+    }
+    async saveSummary(uid, summary) {
+        this.check();
+        this.summaryWrites = (this.summaryWrites ?? 0) + 1;
+        this.summaries.set(uid, JSON.parse(JSON.stringify(summary)));
     }
     async saveRecord(uid, id, record) {
         this.check();
@@ -61,21 +72,23 @@ class FakeAuth {
 }
 
 /** 端末1台分。guest はログインなしの記録 (localStorage のかわり) */
-function device(cloud, { guest = {}, migrate = true } = {}) {
+function device(cloud, { guest = {}, guestSummary = emptySummary(), migrate = true } = {}) {
     const auth = new FakeAuth();
-    const state = { guest: { ...guest }, shown: undefined, asked: 0, statuses: [] };
+    const state = { guest: { ...guest }, guestSummary, shown: undefined, shownSummary: undefined, asked: 0, statuses: [] };
     const sync = new RecordSync(cloud, auth, {
         onStatus: s => state.statuses.push(s.status),
-        onRecords: (records) => {
+        onRecords: (records, current) => {
             state.shown = records === null ? null : { ...records };
+            state.shownSummary = records === null ? null : JSON.parse(JSON.stringify(current.summary));
         },
         askMigrate: () => {
             state.asked++;
             return migrate;
         },
-        readGuest: () => ({ ...state.guest }),
+        readGuest: () => ({ records: { ...state.guest }, summary: state.guestSummary }),
         clearGuest: () => {
             state.guest = {};
+            state.guestSummary = emptySummary();
         },
     }, { retryMs: 5 });
     sync.start();
@@ -113,7 +126,16 @@ describe('記録のくらべ方', () => {
         const doc = toProgressDoc(rec(7, 250), 1234);
         expect(doc).toEqual({ schema: 1, updatedAt: 1234, status: 'done', data: { score: 7, seconds: 250 } });
         expect(fromProgressDoc(doc)).toEqual(rec(7, 250));
-        expect(toAppDoc(1)).toMatchObject({ schema: 1, activeDays: [], completed: [], inventory: {}, spent: {}, settings: {} });
+        const summary = { stamps: ['2026-10-12', '2026-10-13'], clears: ['clear:addition'], cards: [{ id: 'm01', paid: 40 }] };
+        const app = toAppDoc(summary, 1);
+        expect(app).toEqual({
+            schema: 1, updatedAt: 1, activeDays: ['2026-10-12', '2026-10-13'], completed: ['clear:addition'],
+            inventory: { m01: { paid: 40 } }, spent: {}, settings: {},
+        });
+        expect(fromAppDoc(app)).toEqual(summary);
+        expect(fromAppDoc(null)).toEqual(emptySummary());
+        expect(fromAppDoc({ activeDays: 'x', completed: [1, 'clear:mixed', 'bogus'], inventory: { m02: { paid: 'x' } } }))
+            .toEqual({ stamps: [], clears: ['clear:mixed'], cards: [] });
     });
 
     it('形がくずれたデータは読まない', () => {
@@ -324,5 +346,75 @@ describe('ログアウト', () => {
         await settle(d.sync);
         expect(cloud.of('bob')).toEqual({ mixed: rec(3) });
         expect(cloud.of('alice')).toEqual({ addition: rec(12) });
+    });
+});
+
+describe('スタンプ・カードの記録', () => {
+    const day = d => `2026-10-${String(d).padStart(2, '0')}`;
+
+    it('ログイン中に変わった分を Firestore に書き、ほかの端末の分と合わせる', async () => {
+        const cloud = new FakeCloud();
+        const a = device(cloud);
+        const b = device(cloud);
+        a.auth.emit('alice');
+        b.auth.emit('alice');
+        await settle(a.sync);
+        await settle(b.sync);
+        a.sync.submitSummary({ stamps: [day(12)], clears: ['clear:addition'], cards: [] });
+        await settle(a.sync);
+        b.sync.submitSummary({ stamps: [day(13)], clears: [], cards: [{ id: 'm01', paid: 40 }] });
+        await settle(b.sync);
+        const expected = { stamps: [day(12), day(13)], clears: ['clear:addition'], cards: [{ id: 'm01', paid: 40 }] };
+        expect(cloud.summaries.get('alice')).toEqual(expected);
+        expect(b.state.shownSummary).toEqual(expected);
+        expect(b.sync.status).toBe('synced');
+    });
+
+    it('ログインしたとき、うつすことをえらぶと、ログインなしのスタンプとカードもアカウントに合わせて端末から消す', async () => {
+        const cloud = new FakeCloud();
+        cloud.summaries.set('alice', { stamps: [day(10)], clears: [], cards: [{ id: 'm01', paid: 40 }] });
+        const d = device(cloud, { guestSummary: { stamps: [day(11)], clears: ['perfect:long-g3'], cards: [{ id: 'm02', paid: 80 }] } });
+        d.auth.emit(null);
+        await settle(d.sync);
+        await d.sync.signIn();
+        await settle(d.sync);
+        expect(d.state.asked).toBe(1);
+        expect(cloud.summaries.get('alice')).toEqual({
+            stamps: [day(10), day(11)], clears: ['perfect:long-g3'], cards: [{ id: 'm01', paid: 40 }, { id: 'm02', paid: 80 }],
+        });
+        expect(d.state.guestSummary).toEqual(emptySummary());
+        expect(d.state.shownSummary).toEqual(cloud.summaries.get('alice'));
+    });
+
+    it('変わっていなければ、まとめを書き直さない', async () => {
+        const cloud = new FakeCloud();
+        cloud.summaries.set('alice', { stamps: [day(10)], clears: [], cards: [] });
+        const d = device(cloud);
+        d.auth.emit('alice');
+        await settle(d.sync);
+        expect(cloud.summaryWrites ?? 0).toBe(0);
+        d.sync.submitSummary({ stamps: [day(10)], clears: [], cards: [] });
+        await settle(d.sync);
+        expect(cloud.summaryWrites ?? 0).toBe(0);
+    });
+
+    it('送れなかった分は、つながったら送る。ログアウトすると、ログインなしの記録にもどる', async () => {
+        const cloud = new FakeCloud();
+        const d = device(cloud, { guestSummary: { stamps: [day(1)], clears: [], cards: [] }, migrate: false });
+        d.auth.emit('alice');
+        await settle(d.sync);
+        cloud.fail = true;
+        d.sync.submitSummary({ stamps: [day(12)], clears: [], cards: [] });
+        await settle(d.sync);
+        expect(d.sync.status).toBe('offline');
+        cloud.fail = false;
+        await wait(30);
+        await settle(d.sync);
+        expect(cloud.summaries.get('alice').stamps).toEqual([day(12)]);
+        await d.sync.signOut();
+        await settle(d.sync);
+        expect(d.state.shownSummary).toBeNull();
+        expect(d.state.guestSummary.stamps).toEqual([day(1)]);
+        expect(d.sync.summary).toEqual(emptySummary());
     });
 });

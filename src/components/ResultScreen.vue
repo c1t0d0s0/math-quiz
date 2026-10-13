@@ -1,12 +1,14 @@
 <script setup>
 import Hanamaru from './Hanamaru.vue';
+import RewardBox from './RewardBox.vue';
 
 defineProps({
     mode: { type: Object, required: true },
     score: { type: Number, required: true },
     isNewRecord: { type: Boolean, default: false },
+    reward: { type: Object, default: null },
 });
-defineEmits(['restart', 'back']);
+defineEmits(['restart', 'back', 'open']);
 </script>
 
 <template>
@@ -28,6 +30,7 @@ defineEmits(['restart', 'back']);
             <p id="final-score">{{ score }}問</p>
             </div>
             </div>
+            <RewardBox :reward="reward" @open="name => $emit('open', name)" />
             <div class="result-actions result-buttons">
                 <button id="back-to-start-button" type="button" class="btn" @click="$emit('back')">モードを選び直す</button>
                 <button id="restart-button" type="button" class="btn btn-primary" @click="$emit('restart')">もう一回チャレンジ！</button>

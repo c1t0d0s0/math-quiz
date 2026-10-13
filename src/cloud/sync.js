@@ -1,4 +1,5 @@
 import { hasRecords, isBetter, mergeRecords, sameRecord } from './records.js';
+import { emptySummary, hasSummary, mergeSummary, sameSummary } from '../rewards.js';
 
 /**
  * ログイン中の人の記録を Firestore に保存する。
@@ -9,9 +10,10 @@ import { hasRecords, isBetter, mergeRecords, sameRecord } from './records.js';
  * - 送れなかったら、あとでもう一度ためす
  *
  * remote: Firestore とのやりとり。テストでは、メモリ上の代用品に差しかえる
- *   loadAll(uid)              → { exists: まとめがあるか, records }
+ *   loadAll(uid)              → { exists: まとめがあるか, records, summary }
  *   loadRecord(uid, modeId)   → 記録 | null
- *   saveSummary(uid)          その人の情報と、アプリごとのまとめを作る
+ *   loadSummary(uid)          → まとめ (スタンプ・カードなど。src/rewards.js の summary) | null
+ *   saveSummary(uid, summary) その人の情報と、アプリごとのまとめを書く
  *   saveRecord(uid, modeId, record)
  * auth: ログインのやりとり
  *   onUser(cb)  ログインの状態が分かったとき・変わったときに cb(uid | null)
@@ -20,7 +22,7 @@ import { hasRecords, isBetter, mergeRecords, sameRecord } from './records.js';
  *   onStatus(sync)          表示している状態 (ログイン中か、保存ずみか) が変わった
  *   onRecords(records, sync) 見せる記録が変わった。ログアウトしたときは null (ログインなしの記録を見せる)
  *   askMigrate()        ログインしたとき、この端末にログインなしの記録があった。アカウントにうつすかどうか
- *   readGuest() / clearGuest()  この端末の、ログインなしの記録
+ *   readGuest() → { records, summary } / clearGuest()  この端末の、ログインなしの記録
  *
  * status:
  *   loading: ログインしているかどうかを確かめている
@@ -40,6 +42,9 @@ export class RecordSync {
         this.status = 'loading';
         /** ログイン中の人の記録 */
         this.records = {};
+        /** ログイン中の人の、スタンプ・カードなどの記録 */
+        this.summary = emptySummary();
+        this.dirtySummary = false;
         /** ログインしたあと、Firestore の記録を読み終わったか */
         this.loaded = false;
 
@@ -77,9 +82,18 @@ export class RecordSync {
         void this.enqueue(() => this.push());
     }
 
+    /** ログイン中に、スタンプ・カードなどの記録が変わった。おぼえておいて、Firestore に送る */
+    submitSummary(summary) {
+        if (this.uid === null) return;
+        this.summary = mergeSummary(this.summary, summary);
+        this.dirtySummary = true;
+        this.setStatus('syncing');
+        void this.enqueue(() => this.push());
+    }
+
     /** まだ Firestore に送れていない記録があるか */
     hasPending() {
-        return this.uid !== null && (this.dirty.size > 0 || this.needsFull);
+        return this.uid !== null && (this.dirty.size > 0 || this.dirtySummary || this.needsFull);
     }
 
     /** たまっている記録を、今すぐ送る */
@@ -136,6 +150,8 @@ export class RecordSync {
             this.migrate = false;
             this.uid = null;
             this.records = {};
+            this.summary = emptySummary();
+            this.dirtySummary = false;
             this.loaded = false;
             this.hooks.onRecords(null, this);
             this.setStatus('signed-out');
@@ -145,13 +161,16 @@ export class RecordSync {
 
         // この端末にログインなしの記録があれば、うつすかどうかを聞く (ボタンからログインしたときだけ)
         const guest = this.hooks.readGuest();
-        this.migrate = this.interactive && hasRecords(guest) && (await this.hooks.askMigrate());
+        const guestHasAny = hasRecords(guest.records) || hasSummary(guest.summary);
+        this.migrate = this.interactive && guestHasAny && (await this.hooks.askMigrate());
         this.interactive = false;
 
         this.uid = uid;
-        this.records = this.migrate ? mergeRecords(guest, {}) : {};
+        this.records = this.migrate ? mergeRecords(guest.records, {}) : {};
+        this.summary = this.migrate ? mergeSummary(guest.summary, emptySummary()) : emptySummary();
         this.loaded = false;
         this.dirty.clear();
+        this.dirtySummary = false;
         this.needsFull = true;
         this.hooks.onRecords(this.records, this);
         await this.push();
@@ -162,16 +181,19 @@ export class RecordSync {
         if (uid === null || !this.hasPending()) return;
         this.setStatus('syncing');
         const ids = [...this.dirty];
+        const summary = this.dirtySummary;
         this.dirty.clear();
+        this.dirtySummary = false;
         try {
             if (this.needsFull) await this.fullSync(uid);
-            else await this.sendChanges(uid, ids);
+            else await this.sendChanges(uid, ids, summary);
             if (this.uid !== uid) return; // 送っている間にログアウトした
             this.setStatus(this.hasPending() ? 'syncing' : 'synced');
         } catch {
             if (this.uid !== uid) return;
             // 送れなかった分は、もう一度送るものとしておぼえておく
             for (const id of ids) this.dirty.add(id);
+            this.dirtySummary ||= summary;
             this.setStatus('offline');
             this.schedule(this.retryMs);
         }
@@ -184,7 +206,8 @@ export class RecordSync {
 
         // 読んでいる間に出た記録も this.records に入っているので、いっしょに合わせる
         const merged = mergeRecords(remote.records, this.records);
-        if (!remote.exists) await this.remote.saveSummary(uid);
+        const summary = mergeSummary(remote.summary, this.summary);
+        if (!remote.exists || !sameSummary(summary, remote.summary)) await this.remote.saveSummary(uid, summary);
         for (const [id, record] of Object.entries(merged)) {
             if (!sameRecord(remote.records[id], record)) await this.remote.saveRecord(uid, id, record);
         }
@@ -196,6 +219,7 @@ export class RecordSync {
             this.migrate = false;
         }
         this.records = mergeRecords(merged, this.records);
+        this.summary = mergeSummary(summary, this.summary);
         this.needsFull = false;
         this.loaded = true;
         this.hooks.onStatus(this);
@@ -203,8 +227,18 @@ export class RecordSync {
     }
 
     /** 新しく出た記録だけを送る。ほかの端末でもっとよい記録が出ていたら、そちらを残す */
-    async sendChanges(uid, ids) {
+    async sendChanges(uid, ids, summary) {
         let changed = false;
+        if (summary) {
+            // ほかの端末で進んだ分を消してしまわないよう、Firestore のまとめと合わせてから書く
+            const theirs = await this.remote.loadSummary(uid);
+            if (this.uid !== uid) return;
+            const merged = mergeSummary(theirs ?? emptySummary(), this.summary);
+            if (!sameSummary(merged, this.summary)) changed = true;
+            this.summary = merged;
+            if (!theirs || !sameSummary(merged, theirs)) await this.remote.saveSummary(uid, merged);
+            if (this.uid !== uid) return;
+        }
         for (const id of ids) {
             const mine = this.records[id];
             const theirs = await this.remote.loadRecord(uid, id);

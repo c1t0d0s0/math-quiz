@@ -1,4 +1,5 @@
 import { MODES } from '../modes.js';
+import { emptySummary, mergeSummary } from '../rewards.js';
 
 // ログインしていないときの記録。この端末の localStorage に保存する。
 // キーは以前のバージョンと同じ（記録を引き継ぐため）
@@ -8,6 +9,8 @@ const timeKey = modeId => `math_quiz_besttime_${modeId}`;
 // 前にログインしたままだったか。ページを開いた直後、ログインを確かめ終わる前に、
 // ログインなしの記録を一瞬見せてしまわないために使う（記録そのものは入れない）
 const SIGNED_IN_KEY = 'math_quiz_signed_in';
+// スタンプ・「やったね」の記録・カード (src/rewards.js の summary の形)
+const REWARDS_KEY = 'math_quiz_rewards';
 
 function readNumber(key) {
     try {
@@ -37,9 +40,30 @@ export function writeLocalRecord(modeId, record) {
     }
 }
 
+/** この端末にある、ログインなしのスタンプ・カードの記録 */
+export function readLocalSummary() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(REWARDS_KEY) || 'null');
+        if (!saved || typeof saved !== 'object') return emptySummary();
+        const list = v => (Array.isArray(v) ? v : []);
+        return mergeSummary(emptySummary(), { stamps: list(saved.stamps), clears: list(saved.clears), cards: list(saved.cards) });
+    } catch {
+        return emptySummary();
+    }
+}
+
+export function writeLocalSummary(summary) {
+    try {
+        localStorage.setItem(REWARDS_KEY, JSON.stringify(summary));
+    } catch {
+        // 保存できなくても、この画面の間は表示する
+    }
+}
+
 /** ログインなしの記録を消す（アカウントにうつしたあと、二重にうつらないように） */
 export function clearLocalRecords() {
     try {
+        localStorage.removeItem(REWARDS_KEY);
         for (const mode of MODES) {
             localStorage.removeItem(scoreKey(mode.id));
             localStorage.removeItem(timeKey(mode.id));

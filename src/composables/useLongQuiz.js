@@ -13,6 +13,7 @@ export function useLongQuiz(highScores) {
     const results = ref([]); // 小問ごとの正誤（true / false）
     const elapsed = ref(0); // 秒
     const isNewRecord = ref(false);
+    const reward = ref(null); // このプレイでもらったスタンプとポイント
 
     let timer = null;
 
@@ -59,7 +60,9 @@ export function useLongQuiz(highScores) {
     function next() {
         if (selected.value === null) return;
         if (isLast.value) {
-            isNewRecord.value = highScores.submit(mode.value.id, score.value, elapsed.value);
+            const result = highScores.finish(mode.value.id, score.value, elapsed.value, total.value);
+            isNewRecord.value = result.isNewRecord;
+            reward.value = result.reward;
             screen.value = 'result';
             return;
         }
@@ -85,6 +88,6 @@ export function useLongQuiz(highScores) {
 
     return {
         screen, mode, set, problem, question, problemIndex, questionIndex, selected, results,
-        elapsed, total, answered, score, isLast, isNewRecord, start, answer, next, restart, quit,
+        elapsed, total, answered, score, isLast, isNewRecord, reward, start, answer, next, restart, quit,
     };
 }

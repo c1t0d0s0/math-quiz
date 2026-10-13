@@ -19,7 +19,7 @@ import {
     getFirestore,
     setDoc,
 } from 'firebase/firestore/lite';
-import { APP_ID, SCHEMA, fromProgressDoc, toAppDoc, toProgressDoc } from './records.js';
+import { APP_ID, SCHEMA, fromAppDoc, fromProgressDoc, toAppDoc, toProgressDoc } from './records.js';
 
 export function createFirebase(config, emulator) {
     const app = initializeApp(config);
@@ -44,18 +44,22 @@ export function createFirebase(config, emulator) {
                 const record = fromProgressDoc(d.data());
                 if (record) records[d.id] = record;
             });
-            return { exists: summary.exists(), records };
+            return { exists: summary.exists(), records, summary: fromAppDoc(summary.exists() ? summary.data() : null) };
         },
         async loadRecord(uid, id) {
             const snap = await getDoc(progressRef(uid, id));
             return snap.exists() ? fromProgressDoc(snap.data()) : null;
         },
-        async saveSummary(uid) {
+        async loadSummary(uid) {
+            const snap = await getDoc(appRef(uid));
+            return snap.exists() ? fromAppDoc(snap.data()) : null;
+        },
+        async saveSummary(uid, summary) {
             const now = Date.now();
             // その人の情報 (全アプリ共通)。名前やメールアドレスは入れない
             const user = await getDoc(userRef(uid));
             await setDoc(userRef(uid), { schema: SCHEMA, updatedAt: now, ...(user.exists() ? {} : { createdAt: now }) }, { merge: true });
-            await setDoc(appRef(uid), toAppDoc(now));
+            await setDoc(appRef(uid), toAppDoc(summary, now));
         },
         async saveRecord(uid, id, record) {
             await setDoc(progressRef(uid, id), toProgressDoc(record, Date.now()));

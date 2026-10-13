@@ -13,6 +13,7 @@ export function useQuiz(highScores) {
     const question = ref(null);
     const selected = ref(null); // 選んだ選択肢（未回答なら null）
     const isNewRecord = ref(false);
+    const reward = ref(null); // このプレイでもらったスタンプとポイント
 
     let nextQuestion = null;
     let timer = null;
@@ -33,7 +34,9 @@ export function useQuiz(highScores) {
 
     function finish() {
         stopTimers();
-        isNewRecord.value = highScores.submit(mode.value.id, score.value);
+        const result = highScores.finish(mode.value.id, score.value);
+        isNewRecord.value = result.isNewRecord;
+        reward.value = result.reward;
         screen.value = 'result';
     }
 
@@ -76,5 +79,5 @@ export function useQuiz(highScores) {
 
     onUnmounted(stopTimers);
 
-    return { screen, mode, score, timeLeft, question, selected, isNewRecord, start, answer, restart, backToStart };
+    return { screen, mode, score, timeLeft, question, selected, isNewRecord, reward, start, answer, restart, backToStart };
 }
