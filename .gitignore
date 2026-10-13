@@ -1,5 +1,5 @@
 PROMPT.txt
-public/config.js
+config.js
 node_modules
 dist
 *-debug.log

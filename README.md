@@ -18,10 +18,36 @@ npm run build    # dist/ に本番用ファイルを出力
 npm run preview  # ビルド結果の確認
 ```
 
-設定は `public/config.js` に書きます（Git 管理外。ひな形は `config.example.js`）。
+手元での設定は、プロジェクト直下の `config.js` に書きます（Git 管理外。ひな形は `config.example.js`）。
+設定はビルドのときに読むので、変えたら `npm run dev` / `npm run build` をやり直してください。
 
-- Google アナリティクスを使う場合: `const GTM_ID = 'G-XXXXXXX';`
+- Google アナリティクスを使う場合: 下の「アクセス解析」を参照
 - Google ログインと Firestore への保存を使う場合: 下の「ログインと記録の保存」を参照
+
+## 公開 (GitHub Pages)
+
+`main` ブランチに push すると、GitHub Actions（`.github/workflows/deploy.yml`）がテストとビルドを行い、
+GitHub Pages に公開します。テストが失敗したときは公開されません。Actions の画面から手動で実行することもできます。
+
+はじめに1回だけ、リポジトリの Settings → Pages → Build and deployment の **Source** を **GitHub Actions** にしてください。
+
+公開するビルドの設定は、リポジトリの Settings → Secrets and variables → Actions → **Variables** に登録します。
+
+| 変数 | 内容 |
+|---|---|
+| `GTM_ID` | Google アナリティクスの ID。登録してあれば、その ID のタグを埋め込む（なければ埋め込まない） |
+| `FIREBASE_API_KEY` `FIREBASE_AUTH_DOMAIN` `FIREBASE_PROJECT_ID` `FIREBASE_APP_ID` | 4つとも登録してあれば、Google ログインと Firestore への保存が使える（なければログインの入り口を出さない） |
+
+## アクセス解析 (Google のタグ)
+
+ID を設定したときだけ、Google のタグをページに埋め込みます。設定しなければ何も埋め込みません。
+ID が `G-…` なら Google アナリティクス（gtag.js）、`GTM-…` なら Google タグ マネージャーのタグになります。
+
+- 手元: `config.js` に `const GTM_ID = 'G-XXXXXXXXXX';` のように書く
+- GitHub Pages: リポジトリの変数 `GTM_ID` を登録する
+
+環境変数 `GTM_ID`（デプロイ時は `vars.GTM_ID`）があればそれを使い、なければ `config.js` の値を使います。
+ID の形をしていない値を入れると、ビルドがエラーになります。
 
 ## 今日のチャレンジ
 
@@ -103,7 +129,7 @@ users/{uid}/apps/math-quiz/progress/{モードの id}   モードごとの最高
 2. Authentication → ログイン方法 で **Google** を有効にする。設定 → 承認済みドメイン に、公開先のドメインを足す
 3. Firestore Database を作り、ルールに `firestore.rules` の内容を設定する
 4. ウェブアプリの設定値のうち4つを入れる
-   - 手元: `public/config.js` に書く
+   - 手元: `config.js` に書く
 
      ```js
      const FIREBASE_API_KEY = '…';
@@ -112,9 +138,9 @@ users/{uid}/apps/math-quiz/progress/{モードの id}   モードごとの最高
      const FIREBASE_APP_ID = '…';
      ```
 
-   - ビルド用のサーバー: 同じ4つの名前の環境変数でわたす
+   - GitHub Pages: リポジトリの Settings → Secrets and variables → Actions → Variables に、同じ4つの名前で登録する
 
-   環境変数があればそれを使い、なければ `public/config.js` の値を使います。4つのうち一部だけを入れると、ビルドがエラーになります。
+   環境変数があればそれを使い、なければ `config.js` の値を使います。4つのうち一部だけを入れると、ビルドがエラーになります。
    設定はビルドのときに読むので、変えたら `npm run dev` / `npm run build` をやり直してください。
    これらの値は公開されてもよいものです（記録を守るのはルールのほうです）。
 
