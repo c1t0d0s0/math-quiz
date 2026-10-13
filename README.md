@@ -64,6 +64,8 @@ ID の形をしていない値を入れると、ビルドがエラーになり�
 ## スタンプ・ポイント・リスザルカード
 
 キャラクターはリスザルです（絵は `src/monkey.js` が SVG でかきます）。
+ブラウザのタブのアイコン（`public/favicon.ico` / `favicon.svg` / `apple-touch-icon.png`）も同じリスザルです。
+絵を変えたときは `node scripts/build-favicon.mjs` で `favicon.svg` を作り直し、`.ico` と `.png` はその SVG から作り直してください。
 
 - 1回のプレイで5問以上正解すると、その日のスタンプが1個もらえて 20pt（1日1個。どのモードでもよい）
 - 7日連続するたびに 1000pt（とぎれたら数え直し）
