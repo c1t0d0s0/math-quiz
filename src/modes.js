@@ -12,6 +12,9 @@ export const GRADES = [
 
 // モード定義。id はハイスコアの保存キーにも使うので変えないこと
 export const MODES = [
+    { id: 'daily-low', kind: 'daily', level: 'low', name: '今日のチャレンジ（1・2年）', title: '今日のチャレンジ', badge: '1・2年', desc: 'たしざん・ひきざんと ぶんしょうもんだい（10問）', grades: ['low'], timeLimit: 0 },
+    { id: 'daily-mid', kind: 'daily', level: 'mid', name: '今日のチャレンジ（3・4年）', title: '今日のチャレンジ', badge: '3・4年', desc: 'かけ算・わり算・小数と文章問題（10問）', grades: ['mid'], timeLimit: 0 },
+    { id: 'daily-high', kind: 'daily', level: 'high', name: '今日のチャレンジ（5・6年）', title: '今日のチャレンジ', badge: '5・6年', desc: '小数・分数と文章問題（10問）', grades: ['high'], timeLimit: 0 },
     { id: 'addition', kind: 'calc', name: '足し算・引き算', title: '足し算・引き算', badge: '1・2年', desc: '基本の計算（60秒）', grades: ['low'], timeLimit: 60 },
     { id: 'multiplication', kind: 'calc', name: 'かけ算', title: 'かけ算', badge: '2・3年', desc: '九九〜2桁チャレンジ（3分）', grades: ['low', 'mid'], timeLimit: 180 },
     { id: 'division', kind: 'calc', name: '割り算', title: '割り算', badge: '3・4年', desc: '割り切り＆余り計算（2分）', grades: ['mid'], timeLimit: 120 },
@@ -42,7 +45,7 @@ export function isVisible(mode, grade) {
     return grade === 'all' || mode.grades.includes(grade) || mode.grades.includes('all');
 }
 
-/** 1プレイ分の出題関数を作る（長文チャレンジは src/long/index.js の createLongSet を使う） */
+/** 1プレイ分の出題関数を作る（長文チャレンジは src/long/index.js、今日のチャレンジは src/daily.js を使う） */
 export function createGenerator(mode, r = defaultRng, storage) {
     if (mode.kind === 'word') {
         return storage === undefined

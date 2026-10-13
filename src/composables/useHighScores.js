@@ -17,6 +17,8 @@ const ASK_MIGRATE = 'この端末にある記録（最高記録・スタンプ�
 export function useHighScores() {
     const scores = reactive({});
     const times = reactive({});
+    /** 今日のチャレンジで、その記録を出した日 (ほかのモードは '') */
+    const dates = reactive({});
     /** スタンプ・「やったね」の記録・カード (src/rewards.js の summary の形) */
     const rewards = reactive(emptySummary());
     const points = computed(() => balance(rewards));
@@ -38,6 +40,7 @@ export function useHighScores() {
         for (const mode of MODES) {
             scores[mode.id] = records[mode.id]?.score ?? 0;
             times[mode.id] = records[mode.id]?.seconds ?? 0;
+            dates[mode.id] = records[mode.id]?.date ?? '';
         }
         Object.assign(rewards, mergeSummary(emptySummary(), summary));
     }
@@ -86,27 +89,34 @@ export function useHighScores() {
 
     /**
      * スコアを記録する。最高記録を更新したら true を返す。
-     * seconds を渡すと、同じ正解数のときは時間が短いほうを最高記録にする
+     * seconds を渡すと、同じ正解数のときは時間が短いほうを最高記録にする。
+     * date を渡すと (今日のチャレンジ)、その日の記録としてあつかい、前の日の記録を置きかえる
      */
-    function submit(modeId, score, seconds) {
+    function submit(modeId, score, seconds, date) {
         const record = { score, seconds: seconds ?? 0 };
-        if (!isBetter(record, { score: scores[modeId], seconds: times[modeId] })) {
+        if (date) record.date = date;
+        const current = { score: scores[modeId], seconds: times[modeId] };
+        if (dates[modeId]) current.date = dates[modeId];
+        if (!isBetter(record, current)) {
             return false;
         }
         scores[modeId] = record.score;
         times[modeId] = record.seconds;
+        dates[modeId] = record.date ?? '';
         saveRecord(modeId, record);
         return true;
     }
 
     /**
      * 1回のプレイが終わったときによぶ。最高記録を記録し、スタンプとポイントをつける。
-     * total は問題の数 (長文チャレンジだけ)。
+     * total は問題の数 (長文チャレンジと今日のチャレンジ)。今日のチャレンジは、その日ごとの記録にする。
      * もどり値: { isNewRecord, reward }。reward は src/rewards.js の playReward のもどり値
      */
     function finish(modeId, score, seconds, total) {
-        const isNewRecord = submit(modeId, score, seconds);
-        const reward = playReward(mergeSummary(emptySummary(), rewards), findMode(modeId), score, total ?? 0, jstDate());
+        const mode = findMode(modeId);
+        const today = jstDate();
+        const isNewRecord = submit(modeId, score, seconds, mode.kind === 'daily' ? today : undefined);
+        const reward = playReward(mergeSummary(emptySummary(), rewards), mode, score, total ?? 0, today);
         if (reward.gained > 0 || reward.stampAdded) {
             Object.assign(rewards, reward.summary);
             saveSummary(reward.summary);
@@ -144,6 +154,7 @@ export function useHighScores() {
     return {
         scores,
         times,
+        dates,
         rewards,
         points,
         account,

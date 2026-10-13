@@ -189,7 +189,7 @@ function affordable(points) {
 // 毎日スタンプだけをもらう人 (「やったね」のポイントはなし)。月の途中の 10/16 から始める
 const daily = n => earnedPoints(days('2026-10-16', n)).total;
 // いちばん多くもらえる人: 毎日スタンプをもらい、全部のモードの「やったね」を最初の日にもらう
-const ALL_CLEARS = MODES.reduce((sum, m) => sum + (m.kind === 'long' ? PERFECT_POINTS : CLEAR_POINTS), 0);
+const ALL_CLEARS = MODES.reduce((sum, m) => sum + (m.kind === 'long' ? PERFECT_POINTS : m.kind === 'daily' ? 0 : CLEAR_POINTS), 0);
 const maxPlayer = (start, n) => earnedPoints(days(start, n)).total + ALL_CLEARS;
 
 describe('カードの値段のバランス', () => {

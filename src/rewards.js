@@ -94,6 +94,8 @@ export function monthView(stamps, month) {
 
 /** そのプレイが「やったね」にあたるなら、その記録の名前。あたらなければ null */
 export function achievement(mode, score, total) {
+    // 今日のチャレンジは毎日あるので、「やったね」はつけない (スタンプはもらえる)
+    if (mode.kind === 'daily') return null;
     if (mode.kind === 'long') return total > 0 && score === total ? `perfect:${mode.id}` : null;
     return score >= CLEAR_SCORE ? `clear:${mode.id}` : null;
 }

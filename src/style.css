@@ -746,6 +746,12 @@ button {
     font-size: 0.9375rem;
 }
 
+.meter-progress {
+    font-family: var(--hand);
+    font-weight: 600;
+    font-size: 1.125rem;
+}
+
 .meter-num {
     font-family: var(--hand);
     font-weight: 600;

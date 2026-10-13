@@ -51,7 +51,7 @@ describe('モード定義', () => {
 
     it('どのモードも出題できる', () => {
         const storage = { getItem: () => null, setItem: () => {} };
-        for (const mode of MODES.filter(m => m.kind !== 'long')) {
+        for (const mode of MODES.filter(m => m.kind === 'calc' || m.kind === 'word')) {
             const q = createGenerator(mode, createRng(1), storage)();
             expect(q.options, mode.id).toHaveLength(4);
         }

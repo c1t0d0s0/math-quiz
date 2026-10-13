@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { formatTime } from '../modes.js';
 
 const props = defineProps({
     mode: { type: Object, required: true },
@@ -7,12 +8,19 @@ const props = defineProps({
     timeLeft: { type: Number, required: true },
     question: { type: Object, required: true },
     selected: { type: String, default: null },
+    // 今日のチャレンジ (決まった数の問題。時間はむせいげん) のときだけ使う
+    index: { type: Number, default: 0 },
+    total: { type: Number, default: 0 },
+    elapsed: { type: Number, default: 0 },
 });
 defineEmits(['answer', 'quit']);
 
-const isWord = computed(() => props.mode.kind === 'word');
+const isDaily = computed(() => props.mode.kind === 'daily');
+// 文章問題は、文字を小さめにして左によせる
+const isWord = computed(() => props.mode.kind === 'word' || !!props.question.isWord);
 
 const timerText = computed(() => {
+    if (isDaily.value) return `時間: ${formatTime(props.elapsed)}`;
     const t = props.timeLeft;
     if (t >= 60) {
         const seconds = t % 60;
@@ -41,8 +49,11 @@ function optionClass(option) {
         </header>
 
         <div id="game-info-container" class="meter">
-            <p id="score-display" class="meter-item"><span class="meter-label">スコア: </span><b id="score" class="meter-num">{{ score }}</b></p>
-            <p id="timer" class="meter-item meter-time" :class="{ 'is-low': timeLeft <= 10 }">{{ timerText }}</p>
+            <p id="score-display" class="meter-item">
+                <span v-if="isDaily" id="progress" class="meter-progress">第{{ index + 1 }}問 / {{ total }}問　</span>
+                <span class="meter-label">スコア: </span><b id="score" class="meter-num">{{ score }}</b>
+            </p>
+            <p id="timer" class="meter-item meter-time" :class="{ 'is-low': !isDaily && timeLeft <= 10 }">{{ timerText }}</p>
         </div>
 
         <!-- 広い画面では、左に問題、右に選択肢をならべる -->

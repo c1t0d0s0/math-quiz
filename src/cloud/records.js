@@ -4,6 +4,7 @@ import { emptySummary, mergeSummary } from '../rewards.js';
 // 画面にも Firebase にも関係しないので、Node だけでテストできる。
 //
 // 記録1つ: { score: 正解数, seconds: かかった秒数 }（時間を記録しないモードでは seconds は 0）
+//          今日のチャレンジだけは { score, seconds, date: その記録を出した日 }。新しい日の記録が、前の日の記録に勝つ
 // 1人分:   { [モードの id]: 記録 }
 
 // ---- Firestore に保存する形 (小学生向けの学習アプリで共通。Wordlynx と同じ) ----
@@ -17,16 +18,26 @@ import { emptySummary, mergeSummary } from '../rewards.js';
 export const SCHEMA = 1;
 export const APP_ID = 'math-quiz';
 
-/** a のほうが b よりよい記録か。正解数が多いほう。同じなら、時間が短いほう */
+/** a のほうが b よりよい記録か。(日付があれば新しい日のほう。) 正解数が多いほう。同じなら、時間が短いほう */
 export function isBetter(a, b) {
     if (!a || !(a.score > 0)) return false;
     if (!b) return true;
+    if ((a.date ?? '') !== (b.date ?? '')) return (a.date ?? '') > (b.date ?? '');
     if (a.score !== b.score) return a.score > b.score;
     return a.seconds > 0 && (!(b.seconds > 0) || a.seconds < b.seconds);
 }
 
 export function sameRecord(a, b) {
-    return !!a && !!b && a.score === b.score && a.seconds === b.seconds;
+    return !!a && !!b && a.score === b.score && a.seconds === b.seconds && (a.date ?? '') === (b.date ?? '');
+}
+
+const isDate = v => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
+
+/** 決まった項目だけを持つ記録にする */
+function clean(record) {
+    const out = { score: record.score, seconds: record.seconds || 0 };
+    if (isDate(record.date)) out.date = record.date;
+    return out;
 }
 
 /**
@@ -37,7 +48,7 @@ export function mergeRecords(a, b) {
     const out = {};
     for (const id of [...new Set([...Object.keys(a), ...Object.keys(b)])].sort()) {
         const best = isBetter(b[id], a[id]) ? b[id] : a[id];
-        if (best && best.score > 0) out[id] = { score: best.score, seconds: best.seconds || 0 };
+        if (best && best.score > 0) out[id] = clean(best);
     }
     return out;
 }
@@ -74,12 +85,12 @@ export function fromAppDoc(doc) {
 }
 
 export function toProgressDoc(record, now) {
-    return { schema: SCHEMA, updatedAt: now, status: 'done', data: { score: record.score, seconds: record.seconds || 0 } };
+    return { schema: SCHEMA, updatedAt: now, status: 'done', data: clean(record) };
 }
 
 /** Firestore から読んだものは形がくずれているかもしれないので、確かめながらもどす */
 export function fromProgressDoc(doc) {
     const d = doc?.data;
     if (!d || !Number.isInteger(d.score) || d.score <= 0) return null;
-    return { score: d.score, seconds: Number.isInteger(d.seconds) && d.seconds > 0 ? d.seconds : 0 };
+    return clean({ score: d.score, seconds: Number.isInteger(d.seconds) && d.seconds > 0 ? d.seconds : 0, date: d.date });
 }

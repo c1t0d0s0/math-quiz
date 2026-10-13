@@ -19,7 +19,7 @@ const PatternList = defineAsyncComponent(() => import('./components/PatternList.
 
 const highScores = useHighScores();
 const quiz = useQuiz(highScores);
-const { screen, mode, score, timeLeft, question, selected, isNewRecord, reward } = quiz;
+const { screen, mode, score, timeLeft, question, selected, isNewRecord, reward, index, total, elapsed } = quiz;
 const long = useLongQuiz(highScores);
 
 // スタンプカード (#/stamps) とリスザルカード (#/cards) のページ。ブラウザの「もどる」でホームにもどれる
@@ -103,6 +103,7 @@ function start(modeId) {
         v-else-if="screen === 'start'"
         :high-scores="highScores.scores"
         :best-times="highScores.times"
+        :record-dates="highScores.dates"
         :account="highScores.account"
         :sign-in="highScores.signIn"
         :sign-out="highScores.signOut"
@@ -117,6 +118,9 @@ function start(modeId) {
         :time-left="timeLeft"
         :question="question"
         :selected="selected"
+        :index="index"
+        :total="total"
+        :elapsed="elapsed"
         @answer="quiz.answer"
         @quit="quiz.backToStart"
     />
@@ -126,6 +130,8 @@ function start(modeId) {
         :score="score"
         :is-new-record="isNewRecord"
         :reward="reward"
+        :total="total"
+        :elapsed="elapsed"
         @restart="quiz.restart"
         @back="quiz.backToStart"
         @open="openPage"
