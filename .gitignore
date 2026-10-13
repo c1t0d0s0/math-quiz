@@ -2,3 +2,4 @@ PROMPT.txt
 public/config.js
 node_modules
 dist
+*-debug.log

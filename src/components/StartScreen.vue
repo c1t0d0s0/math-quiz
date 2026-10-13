@@ -1,12 +1,16 @@
 <script setup>
 import { ref, computed } from 'vue';
 import Hanamaru from './Hanamaru.vue';
+import AccountBox from './AccountBox.vue';
 import { GRADES, MODES, isVisible, formatTime } from '../modes.js';
 import { SET_SIZE, QUESTIONS_PER_PROBLEM } from '../long/index.js';
 
 const props = defineProps({
     highScores: { type: Object, required: true },
     bestTimes: { type: Object, default: () => ({}) },
+    account: { type: Object, default: () => ({ available: false }) },
+    signIn: { type: Function, default: null },
+    signOut: { type: Function, default: null },
 });
 defineEmits(['start']);
 
@@ -26,6 +30,7 @@ const groups = computed(() => KINDS
 
 // 長文チャレンジは「7/9問（6分12秒）」のように、満点と時間もあわせて見せる
 function longRecord(mode) {
+    if (props.account.loading) return '読みこみ中…';
     const best = props.highScores[mode.id];
     if (!best) return 'まだ記録なし';
     const time = props.bestTimes[mode.id];
@@ -63,6 +68,7 @@ const isPerfect = mode => mode.kind === 'long' && props.highScores[mode.id] === 
                 @click="grade = g.id"
             ><span class="mode-label">{{ g.label }}</span></button>
         </div>
+        <AccountBox v-if="account.available" :account="account" :sign-in="signIn" :sign-out="signOut" />
         </div>
 
         <div class="home-main">
@@ -82,6 +88,7 @@ const isPerfect = mode => mode.kind === 'long' && props.highScores[mode.id] === 
                     <span class="tile-title">{{ mode.title }}</span>
                     <span class="tile-meta">{{ mode.desc }}</span>
                     <span v-if="mode.kind === 'long'" class="tile-record high-score-tag">{{ longRecord(mode) }}</span>
+                    <span v-else-if="account.loading" class="tile-record high-score-tag">読みこみ中…</span>
                     <span v-else class="tile-record high-score-tag">最高: <b>{{ highScores[mode.id] }}</b>問</span>
                     <Hanamaru v-if="isPerfect(mode)" class="hanamaru-small" />
                 </button>

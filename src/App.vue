@@ -63,6 +63,9 @@ function start(modeId) {
         v-else-if="screen === 'start'"
         :high-scores="highScores.scores"
         :best-times="highScores.times"
+        :account="highScores.account"
+        :sign-in="highScores.signIn"
+        :sign-out="highScores.signOut"
         @start="start"
     />
     <QuizScreen

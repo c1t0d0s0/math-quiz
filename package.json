@@ -10,6 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "firebase": "^13.0.0",
     "vue": "^3.5.43"
   },
   "devDependencies": {
