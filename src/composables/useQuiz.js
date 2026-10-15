@@ -6,6 +6,8 @@ import { jstDate } from '../rewards.js';
 // 正解・不正解を見せてから次の問題に進むまでの時間（ミリ秒）
 const CORRECT_DELAY = 400;
 const WRONG_DELAY = { calc: 1300, word: 2500 };
+// 空欄に数字を入れる問題は、合っていたマスを見られるよう、正解のときも少し長めに待つ
+const FILL_CORRECT_DELAY = 700;
 
 /**
  * 計算・文章問題（時間内に何問とけるか）と、今日のチャレンジ（決まった10問。時間はむせいげん）の進行
@@ -43,7 +45,9 @@ export function useQuiz(highScores) {
             return;
         }
         const q = nextQuestion();
-        question.value = { ...q, options: q.options.map(String), answer: String(q.answer), isWord: mode.value.kind === 'word' };
+        question.value = q.type === 'fill'
+            ? q
+            : { ...q, options: q.options.map(String), answer: String(q.answer), isWord: mode.value.kind === 'word' };
     }
 
     function finish() {
@@ -99,10 +103,14 @@ export function useQuiz(highScores) {
         screen.value = 'quiz';
     }
 
+    /** option: 選んだ選択肢。空欄に数字を入れる問題では、入れた数の配列 */
     function answer(option) {
         if (screen.value !== 'quiz' || selected.value !== null) return;
         selected.value = option;
-        const correct = option === question.value.answer;
+        const fill = question.value.type === 'fill';
+        const correct = fill
+            ? option.length === question.value.blanks.length && option.every((v, i) => v === question.value.blanks[i])
+            : option === question.value.answer;
         if (correct) {
             score.value++;
         }
@@ -111,7 +119,8 @@ export function useQuiz(highScores) {
             clearInterval(timer);
             timer = null;
         }
-        pending = setTimeout(advance, correct ? CORRECT_DELAY : WRONG_DELAY[question.value.isWord ? 'word' : 'calc']);
+        const wait = correct ? (fill ? FILL_CORRECT_DELAY : CORRECT_DELAY) : WRONG_DELAY[question.value.isWord ? 'word' : 'calc'];
+        pending = setTimeout(advance, wait);
     }
 
     function restart() {

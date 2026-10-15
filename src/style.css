@@ -870,6 +870,141 @@ button {
     font-size: 1.25rem;
 }
 
+/* 空欄に数字を入れる問題 (線分図) */
+.quiz .fill-sheet {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.fill-sheet .figure {
+    width: 100%;
+    max-width: 34rem;
+    margin: 0.5rem auto 0;
+}
+
+.fill-sheet .figure-svg {
+    max-width: none;
+}
+
+.fill-step {
+    color: var(--muted);
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+.quiz .quiz-body #question.fill-equation {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15em;
+    margin-top: 0.75rem;
+    font-family: var(--hand);
+    font-weight: 600;
+    font-size: clamp(1.6rem, 7vw, 2.25rem);
+    line-height: 1.4;
+    text-align: center;
+}
+
+.fill-text {
+    white-space: pre;
+}
+
+.fill-blank-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15em;
+}
+
+.fill-blank {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.9em;
+    height: 1.6em;
+    padding: 0 0.15em;
+    border: 0;
+    background: var(--paper);
+    box-shadow: 0 0 0 2px var(--rule);
+    font-family: var(--hand);
+    font-weight: 600;
+    font-size: 1em;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.fill-blank.is-active {
+    background: var(--mark);
+    box-shadow: 0 0 0 2px var(--ink);
+}
+
+.fill-blank.correct {
+    background: var(--mark);
+    color: var(--ink);
+    box-shadow: 0 0 0 2px var(--ink);
+}
+
+.fill-blank.incorrect {
+    background: var(--red-soft);
+    color: var(--red);
+    box-shadow: 0 0 0 2px var(--red);
+    text-decoration: line-through;
+}
+
+.fill-correct {
+    color: var(--red);
+    font-size: 0.8em;
+}
+
+/* テンキー */
+.number-pad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.key {
+    min-height: 3.25rem;
+    border: 0;
+    background: var(--paper);
+    box-shadow: 0 0 0 1px var(--rule);
+    font-family: var(--hand);
+    font-weight: 600;
+    font-size: 1.625rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.key:active:not(:disabled) {
+    background: var(--mark);
+}
+
+.key:disabled {
+    color: var(--muted);
+    cursor: default;
+}
+
+.key-special {
+    background: var(--rule-soft);
+    font-family: var(--ui);
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.key-submit {
+    background: var(--ink);
+    color: var(--on-ink);
+    font-family: var(--ui);
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.key-submit:disabled {
+    opacity: 0.6;
+    color: var(--on-ink);
+}
+
 /* ---- 長文チャレンジ ---- */
 .long-layout {
     display: grid;
@@ -1387,6 +1522,20 @@ button {
         min-height: clamp(20rem, 100dvh - 12rem, 38rem);
         margin-top: 0;
         padding: 2rem 2.5rem;
+    }
+
+    .quiz-body .number-pad {
+        margin-top: 0;
+        grid-auto-rows: 1fr;
+    }
+
+    .quiz-body .key {
+        font-size: 2rem;
+    }
+
+    .quiz-body .key-special,
+    .quiz-body .key-submit {
+        font-size: 1.125rem;
     }
 
     .quiz-body .options-container {

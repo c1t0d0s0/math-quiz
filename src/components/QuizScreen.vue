@@ -1,13 +1,15 @@
 <script setup>
 import { computed } from 'vue';
 import { formatTime } from '../modes.js';
+import FillQuestion from './FillQuestion.vue';
 
 const props = defineProps({
     mode: { type: Object, required: true },
     score: { type: Number, required: true },
     timeLeft: { type: Number, required: true },
     question: { type: Object, required: true },
-    selected: { type: String, default: null },
+    // 選んだ選択肢。空欄に数字を入れる問題では、入れた数の配列 (答える前は null)
+    selected: { type: [String, Array], default: null },
     // 今日のチャレンジ (決まった数の問題。時間はむせいげん) のときだけ使う
     index: { type: Number, default: 0 },
     total: { type: Number, default: 0 },
@@ -58,6 +60,13 @@ function optionClass(option) {
 
         <!-- 広い画面では、左に問題、右に選択肢をならべる -->
         <div class="quiz-body">
+        <FillQuestion
+            v-if="question.type === 'fill'"
+            :question="question"
+            :selected="selected"
+            @answer="values => $emit('answer', values)"
+        />
+        <template v-else>
         <div id="question-box" class="sheet">
             <p id="question">{{ question.question }}</p>
         </div>
@@ -73,6 +82,7 @@ function optionClass(option) {
                 @click="$emit('answer', option)"
             >{{ option }}</button>
         </div>
+        </template>
         </div>
     </main>
 </template>

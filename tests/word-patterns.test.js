@@ -79,8 +79,12 @@ describe('出題キュー', () => {
         for (const level of ['low', 'mid', 'high']) {
             const next = createWordGenerator(level, createRng(1), memoryStorage());
             const seen = new Set();
-            for (let i = 0; i < patterns[level].length; i++) {
-                seen.add(next().patternId);
+            // 3・4年では線分図の問題がはさまるので、ふつうの文章問題だけを数える
+            while (seen.size < patterns[level].length) {
+                const q = next();
+                if (q.type === 'fill') continue;
+                expect(seen.has(q.patternId), `${level}: ${q.patternId}`).toBe(false);
+                seen.add(q.patternId);
             }
             expect(seen.size).toBe(patterns[level].length);
         }

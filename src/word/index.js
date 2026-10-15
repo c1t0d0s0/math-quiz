@@ -1,6 +1,7 @@
 import { defaultRng } from '../generators/rng.js';
 import { createBag } from '../generators/bag.js';
 import { buildQuestion } from './helpers.js';
+import { createSegmentSet } from './segments.js';
 
 import lowAddSub from './low/addsub.js';
 import lowMeasure from './low/measure.js';
@@ -37,5 +38,24 @@ export function createWordGenerator(level, r = defaultRng, storage) {
     const next = storage === undefined
         ? createBag(patterns[level], key, r)
         : createBag(patterns[level], key, r, storage);
-    return () => generateFromPattern(next(), r);
+    if (level !== 'mid') {
+        return () => generateFromPattern(next(), r);
+    }
+
+    // 3・4年は、ふつうの文章問題を SEGMENT_EVERY 問出すごとに、線分図の4問ひと組をはさむ
+    let count = 0;
+    let set = [];
+    return () => {
+        if (set.length > 0) return set.shift();
+        if (count === SEGMENT_EVERY) {
+            count = 0;
+            set = createSegmentSet(r);
+            return set.shift();
+        }
+        count++;
+        return generateFromPattern(next(), r);
+    };
 }
+
+/** 3・4年の文章問題で、線分図の問題をはさむまでの、ふつうの問題の数 */
+export const SEGMENT_EVERY = 4;

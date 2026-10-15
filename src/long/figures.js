@@ -13,6 +13,7 @@ export function table(head, rows, caption = '') {
  * total: 右側のかっこに書く文字（合計など）
  */
 export function segments(bars, total = '') {
+    // brace: 'over' を足すと、全体の数を線の上の横向きのかっこに書く (src/word/segments.js)
     return { type: 'segments', bars, total };
 }
 
