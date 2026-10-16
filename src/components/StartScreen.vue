@@ -6,7 +6,7 @@ import Monkey from './Monkey.vue';
 import { pt } from '../rewardText.js';
 import { jstDate } from '../rewards.js';
 import { DAILY_COUNT } from '../daily.js';
-import { GRADES, MODES, isVisible, formatTime } from '../modes.js';
+import { GRADES, MODES, isVisible, formatTime, resolveGrade } from '../modes.js';
 import { SET_SIZE, QUESTIONS_PER_PROBLEM } from '../long/index.js';
 
 const props = defineProps({
@@ -33,7 +33,7 @@ const KINDS = [
     { kind: 'long', title: '長文チャレンジ', note: `長い文章を3題、小問は全部で${LONG_TOTAL}問。時間はむせいげんで、答えは10この中からえらびます。` },
 ];
 
-const grade = ref('all');
+const grade = ref(resolveGrade(new URLSearchParams(location.search).get('grade')));
 const groups = computed(() => KINDS
     .map(k => ({ ...k, modes: MODES.filter(mode => mode.kind === k.kind && isVisible(mode, grade.value)) }))
     .filter(k => k.modes.length > 0));

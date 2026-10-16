@@ -45,6 +45,18 @@ export function isVisible(mode, grade) {
     return grade === 'all' || mode.grades.includes(grade) || mode.grades.includes('all');
 }
 
+const GRADE_BY_PARAM = {
+    '1': 'low', '2': 'low', low: 'low',
+    '3': 'mid', '4': 'mid', mid: 'mid',
+    '5': 'high', '6': 'high', high: 'high',
+    all: 'all',
+};
+
+/** URL の ?grade=... を学年タブの id に変える */
+export function resolveGrade(value) {
+    return GRADE_BY_PARAM[value] ?? 'all';
+}
+
 /** 1プレイ分の出題関数を作る（長文チャレンジは src/long/index.js、今日のチャレンジは src/daily.js を使う） */
 export function createGenerator(mode, r = defaultRng, storage) {
     if (mode.kind === 'word') {

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createRng } from '../src/generators/rng.js';
 import { createCalcGenerator } from '../src/generators/arithmetic.js';
-import { MODES, createGenerator } from '../src/modes.js';
+import { MODES, createGenerator, resolveGrade } from '../src/modes.js';
 
 const CALC_MODES = ['addition', 'multiplication', 'division', 'decimals', 'fractions', 'mixed'];
 
@@ -55,5 +55,20 @@ describe('モード定義', () => {
             const q = createGenerator(mode, createRng(1), storage)();
             expect(q.options, mode.id).toHaveLength(4);
         }
+    });
+
+    it('クエリパラメータの学年を学年タブに変える', () => {
+        expect(resolveGrade('1')).toBe('low');
+        expect(resolveGrade('2')).toBe('low');
+        expect(resolveGrade('3')).toBe('mid');
+        expect(resolveGrade('4')).toBe('mid');
+        expect(resolveGrade('5')).toBe('high');
+        expect(resolveGrade('6')).toBe('high');
+        expect(resolveGrade('low')).toBe('low');
+        expect(resolveGrade('mid')).toBe('mid');
+        expect(resolveGrade('high')).toBe('high');
+        expect(resolveGrade('all')).toBe('all');
+        expect(resolveGrade(null)).toBe('all');
+        expect(resolveGrade('7')).toBe('all');
     });
 });
