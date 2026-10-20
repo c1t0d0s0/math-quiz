@@ -8,7 +8,7 @@ export const cloudAvailable = firebaseConfig !== null;
 export async function startCloud(hooks) {
     if (!firebaseConfig) return null;
     const { createFirebase } = await import('./firebase.js');
-    const { remote, auth } = createFirebase(firebaseConfig, useEmulator);
+    const { remote, auth } = createFirebase(useEmulator);
     const sync = new RecordSync(remote, auth, hooks);
     sync.start();
     // 画面がかくれる前・通信がもどったときに、送れていない記録を送っておく

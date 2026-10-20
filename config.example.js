@@ -12,3 +12,7 @@ const FIREBASE_API_KEY = '';
 const FIREBASE_AUTH_DOMAIN = '';
 const FIREBASE_PROJECT_ID = '';
 const FIREBASE_APP_ID = '';
+
+// 対戦 (Realtime Database) を使うときだけ。Realtime Database の URL (https://….firebasedatabase.app など)。
+// 入れなければ、対戦の入り口は出ない。
+const FIREBASE_DATABASE_URL = '';

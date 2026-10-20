@@ -21,6 +21,11 @@ export const CLEAR_SCORE = 10;
 export const CLEAR_POINTS = 20;
 /** 長文チャレンジで全問正解すると「やったね」(モードごとに1回だけ) */
 export const PERFECT_POINTS = 200;
+/** 対戦で1位になるともらえるポイントと、最後まで解いて1位以外だったときのポイント */
+export const BATTLE_WIN_POINTS = 20;
+export const BATTLE_LOSE_POINTS = 10;
+/** 対戦のポイントがもらえるのは、1日にこの回数まで */
+export const BATTLE_DAILY_LIMIT = 5;
 
 export function emptySummary() {
     return { stamps: [], clears: [], cards: [] };
@@ -100,7 +105,76 @@ export function achievement(mode, score, total) {
     return score >= CLEAR_SCORE ? `clear:${mode.id}` : null;
 }
 
-/** 「やったね」の記録1つでもらえるポイント (知らない名前は 0) */
+// 対戦の結果は「やったね」と同じ記録 (clears) に、battle:<日付>:<部屋のコード>-<回>:win|lose として入れる
+const BATTLE_ID = /^battle:(\d{4}-\d{2}-\d{2}):(\d{5}-\d+):(win|lose)$/;
+
+/** 対戦の結果の記録の名前 */
+export function battleId(date, code, round, outcome) {
+    return `battle:${date}:${code}-${round}:${outcome}`;
+}
+
+/** 対戦の結果1つでもらえるポイント (対戦の記録でなければ 0) */
+function battlePoints(id) {
+    const m = typeof id === 'string' ? id.match(BATTLE_ID) : null;
+    if (!m) return 0;
+    return m[3] === 'win' ? BATTLE_WIN_POINTS : BATTLE_LOSE_POINTS;
+}
+
+/**
+ * 対戦でもらったポイントの合計。同じ回は1回だけ、1日 BATTLE_DAILY_LIMIT 回分までを数える
+ * (記録がそれより多くあっても数えない。2台の記録を合わせても同じ結果になる)
+ */
+export function battleTotal(clears) {
+    const byRound = new Map();
+    for (const id of new Set(clears)) {
+        const m = typeof id === 'string' ? id.match(BATTLE_ID) : null;
+        if (!m) continue;
+        const key = `${m[1]}:${m[2]}`;
+        byRound.set(key, Math.max(byRound.get(key) ?? 0, battlePoints(id)));
+    }
+    const byDate = new Map();
+    for (const [key, points] of byRound) {
+        const date = key.slice(0, 10);
+        if (!byDate.has(date)) byDate.set(date, []);
+        byDate.get(date).push(points);
+    }
+    let total = 0;
+    for (const list of byDate.values()) {
+        total += list.sort((a, b) => b - a).slice(0, BATTLE_DAILY_LIMIT).reduce((s, p) => s + p, 0);
+    }
+    return total;
+}
+
+/** その日に、ポイントをもらった対戦の回数 */
+export function battlesOn(clears, date) {
+    const rounds = new Set();
+    for (const id of clears) {
+        const m = typeof id === 'string' ? id.match(BATTLE_ID) : null;
+        if (m && m[1] === date) rounds.add(m[2]);
+    }
+    return rounds.size;
+}
+
+/**
+ * 対戦の結果をつけたあとの記録。ポイントがもらえないとき (今日の分はおしまい・この回はもうつけた) は、もとのまま。
+ * もどり値: { summary, points: もらったポイント, remaining: 今日あと何回もらえるか }
+ */
+export function battleReward(summary, date, code, round, outcome) {
+    const already = summary.clears.some(id => id.startsWith(`battle:${date}:${code}-${round}:`));
+    const count = battlesOn(summary.clears, date);
+    if (already || count >= BATTLE_DAILY_LIMIT) {
+        return { summary, points: 0, remaining: Math.max(0, BATTLE_DAILY_LIMIT - count), already };
+    }
+    const next = { ...summary, clears: [...summary.clears, battleId(date, code, round, outcome)].sort() };
+    return {
+        summary: next,
+        points: outcome === 'win' ? BATTLE_WIN_POINTS : BATTLE_LOSE_POINTS,
+        remaining: BATTLE_DAILY_LIMIT - count - 1,
+        already: false,
+    };
+}
+
+/** 「やったね」の記録1つでもらえるポイント (知らない名前は 0。対戦の記録は battleTotal で数える) */
 export function clearPoints(id) {
     if (typeof id !== 'string') return 0;
     if (id.startsWith('perfect:')) return PERFECT_POINTS;
@@ -112,6 +186,7 @@ export function clearPoints(id) {
 export function balance(summary) {
     return earnedPoints(summary.stamps).total
         + [...new Set(summary.clears)].reduce((sum, id) => sum + clearPoints(id), 0)
+        + battleTotal(summary.clears)
         - summary.cards.reduce((sum, c) => sum + c.paid, 0);
 }
 
@@ -166,7 +241,7 @@ function mergeCards(a, b) {
 export function mergeSummary(a, b) {
     return {
         stamps: normalizeStamps([...a.stamps, ...b.stamps]),
-        clears: [...new Set([...a.clears, ...b.clears].filter(id => clearPoints(id) > 0))].sort(),
+        clears: [...new Set([...a.clears, ...b.clears].filter(id => clearPoints(id) > 0 || battlePoints(id) > 0))].sort(),
         cards: mergeCards(a.cards, b.cards),
     };
 }

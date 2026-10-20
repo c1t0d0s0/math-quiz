@@ -1,5 +1,5 @@
 <script setup>
-import { defineAsyncComponent, ref, onMounted, onUnmounted } from 'vue';
+import { defineAsyncComponent, ref, computed, onMounted, onUnmounted } from 'vue';
 import StartScreen from './components/StartScreen.vue';
 import QuizScreen from './components/QuizScreen.vue';
 import ResultScreen from './components/ResultScreen.vue';
@@ -7,6 +7,10 @@ import LongQuizScreen from './components/LongQuizScreen.vue';
 import LongResultScreen from './components/LongResultScreen.vue';
 import StampsPage from './components/StampsPage.vue';
 import CardsPage from './components/CardsPage.vue';
+import { battleAvailable } from './cloud/config.js';
+
+// 対戦の画面は、開いたときにはじめて読みこむ
+const BattlePage = defineAsyncComponent(() => import('./components/battle/BattlePage.vue'));
 import { useHighScores } from './composables/useHighScores.js';
 import { useQuiz } from './composables/useQuiz.js';
 import { useLongQuiz } from './composables/useLongQuiz.js';
@@ -22,12 +26,18 @@ const quiz = useQuiz(highScores);
 const { screen, mode, score, timeLeft, question, selected, isNewRecord, reward, index, total, elapsed } = quiz;
 const long = useLongQuiz(highScores);
 
-// スタンプカード (#/stamps) とリスザルカード (#/cards) のページ。ブラウザの「もどる」でホームにもどれる
+// スタンプカード (#/stamps)・リスザルカード (#/cards)・対戦 (#/battle、#/battle/12345) のページ。
+// ブラウザの「もどる」でホームにもどれる
 const PAGES = ['stamps', 'cards'];
-const readPage = () => PAGES.find(name => location.hash === `#/${name}`) ?? 'home';
-const page = ref(readPage());
+function readPage() {
+    const battle = location.hash.match(/^#\/battle(?:\/(\d+))?$/);
+    if (battle && battleAvailable) return { name: 'battle', code: battle[1] ?? null };
+    return { name: PAGES.find(name => location.hash === `#/${name}`) ?? 'home', code: null };
+}
+const route = ref(readPage());
+const page = computed(() => route.value.name);
 const onHashChange = () => {
-    page.value = readPage();
+    route.value = readPage();
 };
 onMounted(() => window.addEventListener('hashchange', onHashChange));
 onUnmounted(() => window.removeEventListener('hashchange', onHashChange));
@@ -83,6 +93,12 @@ function start(modeId) {
         @restart="long.restart"
         @back="long.quit"
         @open="openPage"
+    />
+    <BattlePage
+        v-else-if="page === 'battle' && screen === 'start'"
+        :code="route.code"
+        :add-battle-result="highScores.addBattleResult"
+        @home="goHome"
     />
     <StampsPage
         v-else-if="page === 'stamps' && screen === 'start'"

@@ -4,6 +4,7 @@ import Hanamaru from './Hanamaru.vue';
 import AccountBox from './AccountBox.vue';
 import Monkey from './Monkey.vue';
 import { pt } from '../rewardText.js';
+import { battleAvailable } from '../cloud/config.js';
 import { jstDate } from '../rewards.js';
 import { DAILY_COUNT } from '../daily.js';
 import { GRADES, MODES, isVisible, formatTime, resolveGrade } from '../modes.js';
@@ -98,6 +99,7 @@ const isPerfect = mode => (mode.kind === 'long' && props.highScores[mode.id] ===
             <div class="reward-buttons">
                 <button id="open-stamps" type="button" class="btn" @click="$emit('open', 'stamps')">スタンプカード</button>
                 <button id="open-cards" type="button" class="btn" @click="$emit('open', 'cards')">リスザルカード</button>
+                <button v-if="battleAvailable" id="open-battle" type="button" class="btn btn-primary" @click="$emit('open', 'battle')">対戦する</button>
             </div>
         </nav>
         <AccountBox v-if="account.available" :account="account" :sign-in="signIn" :sign-out="signOut" />

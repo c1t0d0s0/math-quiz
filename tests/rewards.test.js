@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-    CLEAR_POINTS, MONTH_POINTS, PERFECT_POINTS, STAMP_POINTS, STAMP_SCORE, WEEK_POINTS,
+    BATTLE_DAILY_LIMIT, BATTLE_WIN_POINTS, CLEAR_POINTS, MONTH_POINTS, PERFECT_POINTS, STAMP_POINTS, STAMP_SCORE, WEEK_POINTS,
     addDays, balance, buyCard, currentRun, earnedPoints, emptySummary, jstDate, mergeSummary, monthView, playReward, runLengths, sameSummary,
 } from '../src/rewards.js';
 import { CARDS } from '../src/data/cards.js';
@@ -237,5 +237,19 @@ describe('カードの値段のバランス', () => {
         }
         // いちばん早いのは、3か月分の「1か月そろった」が入る 89 日目
         expect(fastest).toBe(89);
+    }, 30000);
+
+    it('対戦のポイントも毎日いちばん多くもらう人 (1日5回とも勝つ) は、いちばん早くて 70 日目に全部そろう', () => {
+        // 対戦のポイントを入れると「全部集めるには3か月」より早くなる。値段を変えるときの目安としてのこしておく
+        const perDay = BATTLE_DAILY_LIMIT * BATTLE_WIN_POINTS;
+        let start = '2027-01-01';
+        let fastest = Infinity;
+        for (let i = 0; i < 731; i++) {
+            let n = 60;
+            while (maxPlayer(start, n) + perDay * n < TOTAL) n++;
+            fastest = Math.min(fastest, n);
+            start = addDays(start, 1);
+        }
+        expect(fastest).toBe(70);
     }, 30000);
 });

@@ -1,4 +1,6 @@
-import { createRng } from './generators/rng.js';
+import { createRng, hashString } from './generators/rng.js';
+
+export { hashString };
 import {
     generateAdditionQuestion, generateDecimalsQuestion, generateDivisionQuestion,
     generateFractionsQuestion, generateMultiplicationQuestion,
@@ -18,16 +20,6 @@ const CALC = {
     mid: [mul, mul, generateDivisionQuestion, generateDivisionQuestion, generateDecimalsQuestion],
     high: [generateDecimalsQuestion, generateDecimalsQuestion, generateFractionsQuestion, generateFractionsQuestion, generateFractionsQuestion],
 };
-
-/** 文字列から、乱数のたねにする数を作る (FNV-1a) */
-export function hashString(text) {
-    let h = 0x811c9dc5;
-    for (let i = 0; i < text.length; i++) {
-        h ^= text.charCodeAt(i);
-        h = Math.imul(h, 0x01000193);
-    }
-    return h >>> 0;
-}
 
 /**
  * その日・その学年帯の10問。date は YYYY-MM-DD、level は 'low' | 'mid' | 'high'。

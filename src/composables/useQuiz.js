@@ -109,7 +109,7 @@ export function useQuiz(highScores) {
         selected.value = option;
         const fill = question.value.type === 'fill';
         const correct = fill
-            ? option.length === question.value.blanks.length && option.every((v, i) => v === question.value.blanks[i])
+            ? option.length === question.value.blanks.length && option.every((v, i) => Number(v) === question.value.blanks[i])
             : option === question.value.answer;
         if (correct) {
             score.value++;

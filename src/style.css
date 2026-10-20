@@ -637,6 +637,230 @@ button {
     margin-top: 0.35rem;
 }
 
+/* ---- 対戦 ---- */
+.battle-page .bar,
+.battle-main {
+    max-width: 52rem;
+    margin: 0 auto;
+}
+
+.battle-page .bar {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.battle-main {
+    display: grid;
+    gap: 1rem;
+    padding: 0.5rem 1rem 4rem;
+}
+
+.battle-card {
+    display: grid;
+    justify-items: start;
+    gap: 0.6rem;
+    padding: 1rem 1.25rem 1.25rem;
+    background: var(--paper);
+    box-shadow: 0 0 0 1px var(--rule);
+}
+
+.battle-card h2 {
+    font-size: 1.0625rem;
+    font-weight: 700;
+}
+
+.battle-message {
+    justify-items: center;
+    text-align: center;
+}
+
+.battle-input {
+    width: min(100%, 18rem);
+    min-height: 2.75rem;
+    padding: 0 0.75rem;
+    border: 0;
+    background: var(--bg);
+    box-shadow: 0 0 0 1px var(--rule);
+    color: var(--ink);
+    font: inherit;
+    font-size: 1.125rem;
+}
+
+.battle-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--ink);
+}
+
+.battle-code-input {
+    width: 9rem;
+    font-family: var(--hand);
+    font-weight: 600;
+    font-size: 1.5rem;
+    letter-spacing: 0.1em;
+}
+
+.battle-label {
+    color: var(--muted);
+    font-size: 0.8125rem;
+    font-weight: 700;
+}
+
+.battle-note {
+    color: var(--muted);
+    font-size: 0.875rem;
+}
+
+.battle-error {
+    color: var(--red);
+    font-weight: 700;
+}
+
+.battle-choice {
+    width: 100%;
+    margin-top: 0;
+    grid-template-columns: repeat(6, 1fr);
+}
+
+.battle-choice.battle-count {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.battle-rules ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: var(--muted);
+    font-size: 0.9375rem;
+}
+
+.battle-invite {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    width: 100%;
+}
+
+.battle-code {
+    font-family: var(--hand);
+    font-weight: 600;
+    font-size: clamp(2.5rem, 12vw, 3.5rem);
+    letter-spacing: 0.12em;
+    line-height: 1.1;
+}
+
+.battle-qr {
+    width: 8.5rem;
+    height: 8.5rem;
+    image-rendering: pixelated;
+}
+
+.battle-players {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.battle-players li {
+    padding: 0.2rem 0.75rem;
+    background: var(--bg);
+    box-shadow: 0 0 0 1px var(--rule-soft);
+    font-weight: 700;
+}
+
+.battle-tag {
+    margin-left: 0.4rem;
+    color: var(--muted);
+    font-size: 0.75rem;
+}
+
+.battle-countdown {
+    justify-items: center;
+    padding: 3rem 1rem;
+}
+
+.battle-count-num {
+    color: var(--red);
+    font-family: var(--hand);
+    font-weight: 600;
+    font-size: 6rem;
+    line-height: 1;
+}
+
+.battle-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.battle-chip {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.2rem 0.75rem;
+    background: var(--paper);
+    box-shadow: 0 0 0 1px var(--rule);
+    font-size: 0.875rem;
+}
+
+.battle-chip.is-me {
+    background: var(--mark-soft);
+    box-shadow: 0 0 0 2px var(--ink);
+}
+
+.battle-chip.is-done span {
+    color: var(--red);
+    font-family: var(--hand);
+    font-weight: 600;
+}
+
+.battle-chip.is-retired,
+.battle-chip.is-left {
+    opacity: 0.6;
+}
+
+.battle-body {
+    margin-top: 0;
+}
+
+.battle-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.battle-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.battle-table th,
+.battle-table td {
+    padding: 0.4rem 0.5rem;
+    border-top: 1px solid var(--rule-soft);
+    text-align: left;
+}
+
+.battle-table th {
+    color: var(--muted);
+    font-size: 0.8125rem;
+}
+
+.battle-table td:first-child {
+    font-family: var(--hand);
+    font-weight: 600;
+    font-size: 1.375rem;
+}
+
+.battle-table tr.is-me {
+    background: var(--mark-soft);
+}
+
 /* ログインと記録の保存 */
 .account {
     display: grid;
@@ -871,7 +1095,7 @@ button {
 }
 
 /* 空欄に数字を入れる問題 (線分図) */
-.quiz .fill-sheet {
+:is(.quiz, .battle-page) .fill-sheet {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -893,7 +1117,7 @@ button {
     font-weight: 700;
 }
 
-.quiz .quiz-body #question.fill-equation {
+:is(.quiz, .battle-page) .quiz-body #question.fill-equation {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -956,6 +1180,13 @@ button {
     font-size: 0.8em;
 }
 
+.fill-hint {
+    grid-column: 1 / -1;
+    color: var(--muted);
+    font-size: 0.875rem;
+    text-align: center;
+}
+
 /* テンキー */
 .number-pad {
     display: grid;
@@ -983,6 +1214,16 @@ button {
 .key:disabled {
     color: var(--muted);
     cursor: default;
+}
+
+/* 小数点・分数の線。テンキーのいちばん上に、横いっぱいにならべる */
+.key-extra {
+    grid-column: span 3;
+    min-height: 2.5rem;
+}
+
+.key-extra + .key-extra {
+    grid-column: span 3;
 }
 
 .key-special {

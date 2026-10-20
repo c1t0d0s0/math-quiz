@@ -2,14 +2,28 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import Figure from './figures/Figure.vue';
 
-// 空欄に数字を入れて答える問題 (線分図の問題)。左に図と式、右にテンキーを出す
+// 空欄に数字を入れて答える問題 (線分図の問題・対戦の問題)。左に図と式、右にテンキーを出す
 const props = defineProps({
-    question: { type: Object, required: true }, // src/word/segments.js の1問
+    question: { type: Object, required: true }, // src/word/segments.js や src/battle/questions.js の1問
     selected: { type: Array, default: null }, // 答えた数 (答える前は null)
+    maxLength: { type: Number, default: 2 }, // 1つの空欄に入れられる文字の数
+    // ふえるたびに「まちがい」を見せて、入れた数を消す (対戦で、正解するまで同じ問題を解くとき)
+    wrongSignal: { type: Number, default: 0 },
 });
 const emit = defineEmits(['answer']);
 
-const MAX_DIGITS = 2;
+// 問題によって足すキー (小数点・分数の線)
+const extraKeys = computed(() => props.question.keys ?? []);
+const wrongFlash = ref(false);
+let flashTimer = null;
+watch(() => props.wrongSignal, () => {
+    reset();
+    wrongFlash.value = true;
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(() => {
+        wrongFlash.value = false;
+    }, 600);
+});
 const values = ref([]);
 const active = ref(0);
 
@@ -23,15 +37,21 @@ const answered = computed(() => props.selected !== null);
 
 function blankClass(i) {
     if (!answered.value) return { 'is-active': i === active.value };
-    const ok = props.selected[i] === props.question.blanks[i];
+    const ok = String(props.selected[i]) === String(props.question.blanks[i]);
     return { correct: ok, incorrect: !ok };
 }
 
-function input(digit) {
+function input(ch) {
     if (answered.value) return;
     const v = values.value[active.value];
-    if (v.length >= MAX_DIGITS || (v === '0')) return;
-    values.value[active.value] = v + digit;
+    if (v.length >= props.maxLength) return;
+    if (ch === '.' || ch === '/') {
+        // 小数点と分数の線は、その問題で使えるときだけ。数のあとに1回だけ
+        if (!extraKeys.value.includes(ch) || v === '' || v.includes('.') || v.includes('/')) return;
+    } else if (v === '0' || v.endsWith('/0')) {
+        return; // 0 のあとに数字は続けない (0.5 の「.」は入れられる)
+    }
+    values.value[active.value] = v + ch;
 }
 
 function erase() {
@@ -49,7 +69,7 @@ function submit() {
         active.value = empty;
         return;
     }
-    emit('answer', values.value.map(Number));
+    emit('answer', [...values.value]);
 }
 
 function select(i) {
@@ -59,7 +79,7 @@ function select(i) {
 // PC ではキーボードでも入力できる
 function onKey(e) {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
-    if (/^[0-9]$/.test(e.key)) input(e.key);
+    if (/^[0-9./]$/.test(e.key)) input(e.key);
     else if (e.key === 'Backspace') erase();
     else if (e.key === 'Enter') submit();
     else if (e.key === 'Tab' || e.key === 'ArrowRight') {
@@ -70,13 +90,17 @@ function onKey(e) {
     e.preventDefault();
 }
 onMounted(() => window.addEventListener('keydown', onKey));
-onUnmounted(() => window.removeEventListener('keydown', onKey));
+onUnmounted(() => {
+    window.removeEventListener('keydown', onKey);
+    clearTimeout(flashTimer);
+});
 </script>
 
 <template>
     <div id="question-box" class="sheet fill-sheet">
-        <p class="fill-step">線分図 {{ question.setIndex }}/{{ question.setSize }}</p>
-        <Figure :figure="question.figure" />
+        <p v-if="question.setIndex" class="fill-step">線分図 {{ question.setIndex }}/{{ question.setSize }}</p>
+        <slot name="before" />
+        <Figure v-if="question.figure" :figure="question.figure" />
         <p id="question" class="fill-equation" :aria-label="question.parts.map(p => (typeof p === 'string' ? p : '□')).join('')">
             <template v-for="(part, i) in question.parts" :key="i">
                 <span v-if="typeof part === 'string'" class="fill-text">{{ part }}</span>
@@ -84,7 +108,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                     <button
                         type="button"
                         class="fill-blank"
-                        :class="blankClass(part.blank)"
+                        :class="[blankClass(part.blank), { incorrect: wrongFlash }]"
                         :aria-label="`空欄${part.blank + 1}`"
                         @click="select(part.blank)"
                     >{{ answered ? selected[part.blank] : values[part.blank] }}</button>
@@ -92,9 +116,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                 </span>
             </template>
         </p>
+        <p v-if="question.hint" class="fill-hint">{{ question.hint }}</p>
     </div>
 
     <div class="number-pad" role="group" aria-label="数字の入力">
+        <button v-for="k in extraKeys" :key="k" type="button" class="key key-extra" :disabled="answered" @click="input(k)">{{ k }}</button>
         <button v-for="d in ['7', '8', '9', '4', '5', '6', '1', '2', '3']" :key="d" type="button" class="key" :disabled="answered" @click="input(d)">{{ d }}</button>
         <button type="button" class="key key-special" :disabled="answered" @click="erase">けす</button>
         <button type="button" class="key" :disabled="answered" @click="input('0')">0</button>

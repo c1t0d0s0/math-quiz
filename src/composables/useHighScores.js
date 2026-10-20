@@ -5,7 +5,7 @@ import { isBetter } from '../cloud/records.js';
 import {
     clearLocalRecords, readLocalRecords, readLocalSummary, rememberSignedIn, wasSignedIn, writeLocalRecord, writeLocalSummary,
 } from '../cloud/local.js';
-import { balance, buyCard as buy, emptySummary, jstDate, mergeSummary, playReward } from '../rewards.js';
+import { balance, battleReward, buyCard as buy, emptySummary, jstDate, mergeSummary, playReward } from '../rewards.js';
 
 const ASK_MIGRATE = 'この端末にある記録（最高記録・スタンプ・カード）を、アカウントにうつしますか？\n（「キャンセル」をえらぶと、アカウントの記録だけを使います。この端末の記録は、ログアウトするとまた使えます）';
 
@@ -124,6 +124,19 @@ export function useHighScores() {
         return { isNewRecord, reward };
     }
 
+    /**
+     * 対戦の結果をつける。outcome は 'win' | 'lose'。同じ回は1回だけ、1日5回まで。
+     * もどり値: { points: もらったポイント, remaining: 今日あと何回もらえるか, already: この回はもうつけた, balance }
+     */
+    function addBattleResult(code, round, outcome) {
+        const result = battleReward(mergeSummary(emptySummary(), rewards), jstDate(), code, round, outcome);
+        if (result.points > 0) {
+            Object.assign(rewards, result.summary);
+            saveSummary(result.summary);
+        }
+        return { ...result, balance: balance(rewards) };
+    }
+
     /** ポイントとカードを交換する。足りないときや、もう持っているとき、読みこみ中は何もしない */
     function buyCard(card) {
         if (account.loading) return false;
@@ -160,6 +173,7 @@ export function useHighScores() {
         account,
         submit,
         finish,
+        addBattleResult,
         buyCard,
         signIn: () => sync.signIn(),
         signOut: force => sync.signOut(force),

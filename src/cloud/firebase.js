@@ -1,10 +1,7 @@
 // Firebase を使う部分は、このファイルだけにまとめる。
 // 最初の画面を出したあとで読みこむので、Firebase を使わない人の最初の表示はおそくならない。
-import { initializeApp } from 'firebase/app';
 import {
     GoogleAuthProvider,
-    connectAuthEmulator,
-    getAuth,
     onAuthStateChanged,
     signInWithCredential,
     signInWithPopup,
@@ -20,13 +17,12 @@ import {
     setDoc,
 } from 'firebase/firestore/lite';
 import { APP_ID, SCHEMA, fromAppDoc, fromProgressDoc, toAppDoc, toProgressDoc } from './records.js';
+import { firebaseApp, firebaseAuth } from './app.js';
 
-export function createFirebase(config, emulator) {
-    const app = initializeApp(config);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+export function createFirebase(emulator) {
+    const auth = firebaseAuth();
+    const db = getFirestore(firebaseApp());
     if (emulator) {
-        connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
         connectFirestoreEmulator(db, '127.0.0.1', 8080);
     }
 
@@ -68,7 +64,8 @@ export function createFirebase(config, emulator) {
 
     const authPort = {
         onUser(cb) {
-            onAuthStateChanged(auth, user => cb(user ? user.uid : null));
+            // 対戦のための匿名ログインは「ログインしていない」としてあつかう (記録は Google でログインしたときだけ Firestore に保存する)
+            onAuthStateChanged(auth, user => cb(user && !user.isAnonymous ? user.uid : null));
         },
         async signIn() {
             // エミュレーターには本物の Google ログインの画面がないので、テストから「だれとしてログインするか」を
