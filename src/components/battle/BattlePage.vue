@@ -68,7 +68,12 @@ const now = ref(Date.now());
 let clock = null;
 
 // ---- 対戦中の自分の進み具合 ----
-const questions = computed(() => (room.value?.seed ? battleQuestions(room.value.grade, room.value.count, room.value.seed) : []));
+// 部屋のデータは、だれかが答えるたびに新しくなる。問題は学年・出題数・シードが変わったときだけ作り直す
+// (作り直すと、入力中の数が消える)
+const roomGrade = computed(() => room.value?.grade);
+const roomCount = computed(() => room.value?.count);
+const roomSeed = computed(() => room.value?.seed);
+const questions = computed(() => (roomSeed.value ? battleQuestions(roomGrade.value, roomCount.value, roomSeed.value) : []));
 const solved = ref(0);
 const misses = ref(0);
 const wrongSignal = ref(0);
