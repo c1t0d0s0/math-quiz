@@ -5,6 +5,7 @@ import {
     generateAdditionQuestion, generateDecimalsQuestion, generateDivisionQuestion,
     generateFractionsQuestion, generateMultiplicationQuestion,
 } from './generators/arithmetic.js';
+import { generateUnitsLow, generateUnitsMid, generateUnitsHigh } from './generators/units.js';
 import { patterns, generateFromPattern } from './word/index.js';
 
 // 今日のチャレンジ。学年帯ごとに、計算5問と文章問題5問の10問を出す。
@@ -16,9 +17,9 @@ export const DAILY_COUNT = 10;
 // 学年帯ごとの計算問題5問の作り方
 const mul = r => generateMultiplicationQuestion(r, 8);
 const CALC = {
-    low: [generateAdditionQuestion, generateAdditionQuestion, generateAdditionQuestion, generateAdditionQuestion, generateAdditionQuestion],
-    mid: [mul, mul, generateDivisionQuestion, generateDivisionQuestion, generateDecimalsQuestion],
-    high: [generateDecimalsQuestion, generateDecimalsQuestion, generateFractionsQuestion, generateFractionsQuestion, generateFractionsQuestion],
+    low: [generateAdditionQuestion, generateAdditionQuestion, generateAdditionQuestion, generateAdditionQuestion, generateUnitsLow],
+    mid: [mul, mul, generateDivisionQuestion, generateDecimalsQuestion, generateUnitsMid],
+    high: [generateDecimalsQuestion, generateDecimalsQuestion, generateFractionsQuestion, generateFractionsQuestion, generateUnitsHigh],
 };
 
 /**

@@ -3,7 +3,7 @@ import { createRng } from '../src/generators/rng.js';
 import { createCalcGenerator } from '../src/generators/arithmetic.js';
 import { MODES, createGenerator, resolveGrade } from '../src/modes.js';
 
-const CALC_MODES = ['addition', 'multiplication', 'division', 'decimals', 'fractions', 'mixed'];
+const CALC_MODES = ['addition', 'multiplication', 'division', 'decimals', 'fractions', 'units-low', 'units-mid', 'units-high', 'mixed'];
 
 describe.each(CALC_MODES)('計算モード %s', (mode) => {
     it('正しい形の4択になる', () => {
@@ -32,6 +32,16 @@ describe('かけ算の難しさ', () => {
             return big / (to - from + 1);
         };
         expect(count(21, 400)).toBeGreaterThan(0.6);
+    });
+});
+
+describe('ミックス', () => {
+    it('単位の問題もまざる', () => {
+        const next = createCalcGenerator('mixed', createRng(5));
+        const qs = Array.from({ length: 300 }, next);
+        const units = qs.filter(q => / = \?\D/.test(q.question));
+        expect(units.length).toBeGreaterThan(20);
+        expect(units.length).toBeLessThan(100);
     });
 });
 

@@ -1,4 +1,5 @@
 import { gcd, lcm } from './rng.js';
+import { generateUnitsQuestion, generateUnitsLow, generateUnitsMid, generateUnitsHigh } from './units.js';
 
 /**
  * たしざん・ひきざんの問題を生成
@@ -330,17 +331,24 @@ const GENERATORS = {
     division: generateDivisionQuestion,
     decimals: generateDecimalsQuestion,
     fractions: generateFractionsQuestion,
+    'units-low': generateUnitsLow,
+    'units-mid': generateUnitsMid,
+    'units-high': generateUnitsHigh,
+    // ミックス用。単位は学年帯をランダムにえらぶ
+    units: r => generateUnitsQuestion(r.pick(['low', 'mid', 'high']), r),
 };
 
+// ミックスで出す種類（単位は学年帯ごとの3つではなく、まとめて1つと数える）
+const MIXED_KINDS = ['addition', 'multiplication', 'division', 'decimals', 'fractions', 'units'];
+
 /**
- * 計算モード1回分の出題関数を作る。'mixed' は5種からランダムに出す
+ * 計算モード1回分の出題関数を作る。'mixed' は6種からランダムに出す
  */
 export function createCalcGenerator(mode, r) {
     let questionsAsked = 0;
-    const kinds = Object.keys(GENERATORS);
     return () => {
         questionsAsked++;
-        const kind = mode === 'mixed' ? r.pick(kinds) : mode;
+        const kind = mode === 'mixed' ? r.pick(MIXED_KINDS) : mode;
         return (GENERATORS[kind] || generateAdditionQuestion)(r, questionsAsked);
     };
 }

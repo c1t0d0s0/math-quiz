@@ -57,14 +57,17 @@ describe('今日のチャレンジの問題', () => {
         }
     });
 
-    it('1・2年の問題は、決めた漢字以外を使わない。計算はたし算・ひき算だけ', () => {
+    it('1・2年の問題は、決めた漢字以外を使わない。計算はたし算・ひき算4問と単位1問', () => {
         let date = '2026-10-01';
         for (let i = 0; i < 60; i++) {
-            for (const q of createDailyQuestions('low', date)) {
+            const qs = createDailyQuestions('low', date);
+            for (const q of qs) {
                 const kanji = (q.question + q.options.join('')).match(/[一-鿿]/g) || [];
                 expect(kanji.filter(c => !LOW_KANJI.includes(c)), q.question).toEqual([]);
-                if (!q.isWord) expect(q.question).toMatch(/^\d+ [+-] \d+ = \?$/);
             }
+            const calc = qs.filter(q => !q.isWord).map(q => q.question);
+            expect(calc.filter(t => /^\d+ [+-] \d+ = \?$/.test(t)), date).toHaveLength(4);
+            expect(calc.filter(t => /^\S+ = \?\D+$/.test(t)), date).toHaveLength(1);
             date = addDays(date, 1);
         }
     });
