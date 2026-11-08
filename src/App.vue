@@ -138,6 +138,7 @@ function start(modeId) {
         :total="total"
         :elapsed="elapsed"
         @answer="quiz.answer"
+        @next="quiz.next"
         @quit="quiz.backToStart"
     />
     <ResultScreen

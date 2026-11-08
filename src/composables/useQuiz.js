@@ -1,6 +1,7 @@
 import { ref, onUnmounted } from 'vue';
 import { findMode, createGenerator } from '../modes.js';
 import { createDailyQuestions } from '../daily.js';
+import { createZukeiSet } from '../zukei/index.js';
 import { jstDate } from '../rewards.js';
 
 // 正解・不正解を見せてから次の問題に進むまでの時間（ミリ秒）
@@ -10,7 +11,8 @@ const WRONG_DELAY = { calc: 1300, word: 2500 };
 const FILL_CORRECT_DELAY = 700;
 
 /**
- * 計算・文章問題（時間内に何問とけるか）と、今日のチャレンジ（決まった10問。時間はむせいげん）の進行
+ * 計算・文章問題（時間内に何問とけるか）と、今日のチャレンジ・図形チャレンジ（決まった10問。時間はむせいげん）の進行。
+ * 図形チャレンジは、答えたあとに解き方を見せて、「つぎへ」(next) をおすまで待つ
  */
 export function useQuiz(highScores) {
     const screen = ref('start'); // 'start' | 'quiz' | 'result'
@@ -21,13 +23,13 @@ export function useQuiz(highScores) {
     const selected = ref(null); // 選んだ選択肢（未回答なら null）
     const isNewRecord = ref(false);
     const reward = ref(null); // このプレイでもらったスタンプとポイント
-    // 今日のチャレンジだけで使う
+    // 今日のチャレンジと図形チャレンジだけで使う
     const index = ref(0); // 今の問題が何問目か (0 から)
-    const total = ref(0); // 問題の数 (今日のチャレンジ以外は 0)
+    const total = ref(0); // 問題の数 (計算・文章問題は 0)
     const elapsed = ref(0); // かかった秒数
 
     let nextQuestion = null;
-    let fixed = null; // 今日のチャレンジの10問
+    let fixed = null; // 今日のチャレンジ・図形チャレンジの10問
     let timer = null;
     let pending = null;
 
@@ -60,7 +62,7 @@ export function useQuiz(highScores) {
         screen.value = 'result';
     }
 
-    /** 答えを見せたあと、次の問題へ進む。今日のチャレンジは、さいごの問題なら結果へ */
+    /** 答えを見せたあと、次の問題へ進む。問題の数が決まっているときは、さいごの問題なら結果へ */
     function advance() {
         if (fixed) {
             if (index.value + 1 >= total.value) {
@@ -80,11 +82,13 @@ export function useQuiz(highScores) {
         score.value = 0;
         index.value = 0;
         elapsed.value = 0;
-        if (next.kind === 'daily') {
-            fixed = createDailyQuestions(next.level, jstDate());
+        if (next.kind === 'daily' || next.kind === 'zukei') {
+            fixed = next.kind === 'daily' ? createDailyQuestions(next.level, jstDate()) : createZukeiSet(next.level);
             total.value = fixed.length;
             timeLeft.value = 0;
             timer = setInterval(() => {
+                // 図形チャレンジで解き方を読んでいる間は、時間を数えない
+                if (next.kind === 'zukei' && selected.value !== null) return;
                 elapsed.value++;
             }, 1000);
         } else {
@@ -119,8 +123,15 @@ export function useQuiz(highScores) {
             clearInterval(timer);
             timer = null;
         }
+        if (mode.value.kind === 'zukei') return;
         const wait = correct ? (fill ? FILL_CORRECT_DELAY : CORRECT_DELAY) : WRONG_DELAY[question.value.isWord ? 'word' : 'calc'];
         pending = setTimeout(advance, wait);
+    }
+
+    /** 図形チャレンジで、解き方を見たあとに次の問題へ進む */
+    function next() {
+        if (screen.value !== 'quiz' || selected.value === null || mode.value.kind !== 'zukei') return;
+        advance();
     }
 
     function restart() {
@@ -136,6 +147,6 @@ export function useQuiz(highScores) {
 
     return {
         screen, mode, score, timeLeft, question, selected, isNewRecord, reward, index, total, elapsed,
-        start, answer, restart, backToStart,
+        start, answer, next, restart, backToStart,
     };
 }

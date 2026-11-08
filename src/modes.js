@@ -27,6 +27,8 @@ export const MODES = [
     { id: 'word-low', kind: 'word', level: 'low', name: '文章問題（1・2年）', title: '文章問題', badge: '1・2年', desc: 'おはなしを よんで こたえよう（5分）', grades: ['low'], timeLimit: 300 },
     { id: 'word-mid', kind: 'word', level: 'mid', name: '文章問題（3・4年）', title: '文章問題', badge: '3・4年', desc: 'わり算・面積・時間などの文章題（5分）', grades: ['mid'], timeLimit: 300 },
     { id: 'word-high', kind: 'word', level: 'high', name: '文章問題（5・6年）', title: '文章問題', badge: '5・6年', desc: '速さ・割合・比などの文章題（5分）', grades: ['high'], timeLimit: 300 },
+    { id: 'zukei-mid', kind: 'zukei', level: 'mid', name: '図形チャレンジ（3・4年）', title: '図形チャレンジ', badge: '3・4年', desc: 'まわりの長さ・面積・角度・マス・積み木・折り紙（10問）', grades: ['mid'], timeLimit: 0 },
+    { id: 'zukei-high', kind: 'zukei', level: 'high', name: '図形チャレンジ（5・6年）', title: '図形チャレンジ', badge: '5・6年', desc: '面積・角度・体積・円・折り紙とひらめき問題（10問）', grades: ['high'], timeLimit: 0 },
     { id: 'long-g3', kind: 'long', level: 'g3', name: '長文チャレンジ（3年）', title: '長文チャレンジ', badge: '3年', desc: '長い文章を読んで小問に答える（時間無制限・10択）', grades: ['mid'], timeLimit: 0 },
     { id: 'long-g45', kind: 'long', level: 'g45', name: '長文チャレンジ（4・5年）', title: '長文チャレンジ', badge: '4・5年', desc: '旅人算・割合などの受験型長文（時間無制限・10択）', grades: ['mid', 'high'], timeLimit: 0 },
     { id: 'long-g6', kind: 'long', level: 'g6', name: '長文チャレンジ（6年）', title: '長文チャレンジ', badge: '6年', desc: 'グラフや図を読み取る入試型長文（時間無制限・10択）', grades: ['high'], timeLimit: 0 },
@@ -60,7 +62,7 @@ export function resolveGrade(value) {
     return GRADE_BY_PARAM[value] ?? 'all';
 }
 
-/** 1プレイ分の出題関数を作る（長文チャレンジは src/long/index.js、今日のチャレンジは src/daily.js を使う） */
+/** 1プレイ分の出題関数を作る（長文チャレンジは src/long/index.js、今日のチャレンジは src/daily.js、図形チャレンジは src/zukei/index.js を使う） */
 export function createGenerator(mode, r = defaultRng, storage) {
     if (mode.kind === 'word') {
         return storage === undefined

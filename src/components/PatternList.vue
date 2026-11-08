@@ -1,13 +1,17 @@
 <script setup>
 import { ref, computed } from 'vue';
 import Figure from './figures/Figure.vue';
+import FigureList from './figures/FigureList.vue';
 import { patterns, generateFromPattern } from '../word/index.js';
 import { problems, generateProblem } from '../long/index.js';
+import { patterns as zukeiPatterns, generateZukei } from '../zukei/index.js';
 
 const LEVELS = [['low', '1・2年'], ['mid', '3・4年'], ['high', '5・6年']];
 const LONG_LEVELS = [['g3', '3年'], ['g45', '4・5年'], ['g6', '6年']];
 const round = ref(0);
-const view = ref(new URLSearchParams(location.search).get('view') === 'long' ? 'long' : 'word');
+const VIEWS = ['word', 'long', 'zukei'];
+const param = new URLSearchParams(location.search).get('view');
+const view = ref(VIEWS.includes(param) ? param : 'word');
 
 // トピックごとにまとめたサンプル（「作り直す」で数値や人名が変わる）
 const groups = computed(() => {
@@ -34,6 +38,23 @@ const longGroups = computed(() => {
     }));
 });
 const longTotal = computed(() => longGroups.value.reduce((sum, g) => sum + g.items.length, 0));
+
+// 図形チャレンジ: パターンごとに1問ずつ作って、図と答えと解き方を見る
+const zukeiGroups = computed(() => {
+    round.value;
+    return [['mid', '3・4年'], ['high', '5・6年']].map(([level, label]) => ({
+        label,
+        items: zukeiPatterns[level].map(p => generateZukei(p)),
+    }));
+});
+const zukeiTotal = computed(() => zukeiGroups.value.reduce((sum, g) => sum + g.items.length, 0));
+
+/** 図形の問題の答え (空欄に答えの数を入れた式、または図の記号) */
+function zukeiAnswer(q) {
+    if (q.type !== 'fill') return q.answer;
+    let i = 0;
+    return q.parts.map(p => (typeof p === 'string' ? p : `[${q.blanks[i++]}]`)).join('');
+}
 </script>
 
 <template>
@@ -41,6 +62,7 @@ const longTotal = computed(() => longGroups.value.reduce((sum, g) => sum + g.ite
         <h1>問題パターン一覧</h1>
         <button class="btn" :class="{ 'btn-primary': view === 'word' }" @click="view = 'word'">文章問題（{{ total }}）</button>
         <button class="btn" :class="{ 'btn-primary': view === 'long' }" @click="view = 'long'">長文チャレンジ（{{ longTotal }}）</button>
+        <button class="btn" :class="{ 'btn-primary': view === 'zukei' }" @click="view = 'zukei'">図形チャレンジ（{{ zukeiTotal }}）</button>
         <button class="btn" @click="round++">作り直す</button>
 
         <template v-if="view === 'word'">
@@ -55,6 +77,25 @@ const longTotal = computed(() => longGroups.value.reduce((sum, g) => sum + g.ite
                         </dd>
                     </dl>
                 </div>
+            </section>
+        </template>
+
+        <template v-else-if="view === 'zukei'">
+            <section v-for="group in zukeiGroups" :key="group.label">
+                <h2>{{ group.label }}（{{ group.items.length }}）</h2>
+                <article v-for="q in group.items" :key="q.patternId" class="long-passage zukei-sample">
+                    <h3>{{ q.topicLabel }} <code>{{ q.patternId }}</code><span v-if="q.hirameki" class="zukei-hirameki">ひらめき</span></h3>
+                    <p>{{ q.text }}</p>
+                    <FigureList :figure="q.figure" />
+                    <div v-if="q.type === 'pick'" class="figure-options zukei-sample-options">
+                        <div v-for="o in q.options" :key="o" :class="{ answer: o === q.answer }">
+                            <b>{{ o }}</b>
+                            <Figure :figure="q.optionFigures[o]" />
+                        </div>
+                    </div>
+                    <p class="answer">答え: {{ zukeiAnswer(q) }}</p>
+                    <p class="zukei-explain">{{ q.explain }}</p>
+                </article>
             </section>
         </template>
 

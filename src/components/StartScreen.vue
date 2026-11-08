@@ -9,6 +9,7 @@ import { jstDate } from '../rewards.js';
 import { DAILY_COUNT } from '../daily.js';
 import { GRADES, MODES, isVisible, formatTime, resolveGrade } from '../modes.js';
 import { SET_SIZE, QUESTIONS_PER_PROBLEM } from '../long/index.js';
+import { ZUKEI_COUNT } from '../zukei/index.js';
 
 const props = defineProps({
     highScores: { type: Object, required: true },
@@ -31,6 +32,7 @@ const KINDS = [
     { kind: 'daily', title: `今日のチャレンジ　${todayLabel}`, note: `毎日かわる${DAILY_COUNT}問。同じ日は、だれが開いても同じ問題が出ます。時間はむせいげんです。` },
     { kind: 'calc', title: '計算', note: '時間内に何問とけるかな。答えは4つの中からえらびます。' },
     { kind: 'word', title: '文章問題', note: '5分間でできるだけたくさん。いろいろな場面の問題が出ます。' },
+    { kind: 'zukei', title: '図形チャレンジ', note: `図を見て考える${ZUKEI_COUNT}問。時間はむせいげんで、答えたあとに解き方が見られます。` },
     { kind: 'long', title: '長文チャレンジ', note: `長い文章を3題、小問は全部で${LONG_TOTAL}問。時間はむせいげんで、答えは10この中からえらびます。` },
 ];
 
@@ -39,13 +41,14 @@ const groups = computed(() => KINDS
     .map(k => ({ ...k, modes: MODES.filter(mode => mode.kind === k.kind && isVisible(mode, grade.value)) }))
     .filter(k => k.modes.length > 0));
 
-// 長文チャレンジは「7/9問（6分12秒）」のように、満点と時間もあわせて見せる
+// 長文チャレンジと図形チャレンジは「7/9問（6分12秒）」のように、満点と時間もあわせて見せる
+const totalOf = mode => (mode.kind === 'long' ? LONG_TOTAL : ZUKEI_COUNT);
 function longRecord(mode) {
     if (props.account.loading) return '読みこみ中…';
     const best = props.highScores[mode.id];
     if (!best) return 'まだ記録なし';
     const time = props.bestTimes[mode.id];
-    return `最高: ${best}/${LONG_TOTAL}問` + (time ? `（${formatTime(time)}）` : '');
+    return `最高: ${best}/${totalOf(mode)}問` + (time ? `（${formatTime(time)}）` : '');
 }
 
 // 今日のチャレンジは、今日の分の記録だけを見せる (きのうまでの記録は出さない)
@@ -57,7 +60,7 @@ function dailyRecord(mode) {
     return `今日: ${props.highScores[mode.id]}/${DAILY_COUNT}問` + (time ? `（${formatTime(time)}）` : '');
 }
 
-const isPerfect = mode => (mode.kind === 'long' && props.highScores[mode.id] === LONG_TOTAL)
+const isPerfect = mode => ((mode.kind === 'long' || mode.kind === 'zukei') && props.highScores[mode.id] === totalOf(mode))
     || (mode.kind === 'daily' && playedToday(mode) && props.highScores[mode.id] === DAILY_COUNT);
 </script>
 
@@ -122,7 +125,7 @@ const isPerfect = mode => (mode.kind === 'long' && props.highScores[mode.id] ===
                     <span class="tile-title">{{ mode.title }}</span>
                     <span class="tile-meta">{{ mode.desc }}</span>
                     <span v-if="mode.kind === 'daily'" class="tile-record high-score-tag">{{ dailyRecord(mode) }}</span>
-                    <span v-else-if="mode.kind === 'long'" class="tile-record high-score-tag">{{ longRecord(mode) }}</span>
+                    <span v-else-if="mode.kind === 'long' || mode.kind === 'zukei'" class="tile-record high-score-tag">{{ longRecord(mode) }}</span>
                     <span v-else-if="account.loading" class="tile-record high-score-tag">読みこみ中…</span>
                     <span v-else class="tile-record high-score-tag">最高: <b>{{ highScores[mode.id] }}</b>問</span>
                     <Hanamaru v-if="isPerfect(mode)" class="hanamaru-small" />

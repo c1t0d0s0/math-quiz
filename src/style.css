@@ -1187,6 +1187,100 @@ button {
     text-align: center;
 }
 
+/* 図形チャレンジ */
+.zukei-mode .fill-sheet,
+.zukei-sheet {
+    justify-content: flex-start;
+    place-items: stretch;
+    align-content: start;
+}
+
+.fill-question-text {
+    font-family: var(--ui);
+    font-weight: 500;
+    font-size: 1.0625rem;
+    line-height: 1.9;
+    text-align: left;
+}
+
+.zukei-topic {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+    color: var(--muted);
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+.zukei-hirameki {
+    padding: 0.05rem 0.5rem;
+    background: var(--mark);
+    color: var(--ink);
+    font-size: 0.8125rem;
+}
+
+.zukei-mode .quiz-body #question.fill-equation {
+    font-size: clamp(1.5rem, 6vw, 2rem);
+}
+
+.zukei-after {
+    display: grid;
+    gap: 0.6rem;
+    margin-top: 1rem;
+    padding: 1rem 1.25rem 1.25rem;
+    background: var(--paper);
+    box-shadow: 0 0 0 1px var(--rule);
+}
+
+.zukei-verdict {
+    color: var(--red);
+    font-family: var(--hand);
+    font-weight: 600;
+    font-size: 1.25rem;
+}
+
+.zukei-explain {
+    font-size: 1rem;
+    line-height: 1.9;
+}
+
+.zukei-explain b {
+    margin-right: 0.6rem;
+    padding: 0.05rem 0.45rem;
+    background: var(--mark-soft);
+    font-size: 0.875rem;
+}
+
+.zukei-after .btn {
+    justify-self: end;
+}
+
+.figure-options {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.option-figure {
+    display: grid;
+    justify-items: center;
+    gap: 0.15rem;
+    padding: 0.4rem 0.4rem 0.2rem;
+}
+
+.option-label {
+    justify-self: start;
+    font-size: 1.25rem;
+}
+
+.option-figure .figure {
+    width: 100%;
+    margin: 0;
+}
+
+.option-figure .figure-svg {
+    max-width: 11rem !important;
+}
+
 /* テンキー */
 .number-pad {
     display: grid;
@@ -1514,6 +1608,88 @@ button {
     fill: var(--rule-soft);
 }
 
+.fig-line.fill-paper {
+    fill: var(--paper);
+}
+
+/* 折り紙の切り取ったところ */
+.fig-line.fill-cut {
+    fill: var(--ink);
+    stroke: none;
+}
+
+.fig-line.thin-ink {
+    stroke-width: 1.4;
+}
+
+/* マス目 */
+.fig-cell {
+    fill: var(--paper);
+    stroke: var(--ink);
+    stroke-width: 1.5;
+}
+
+.fig-cell.is-target {
+    fill: var(--mark-soft);
+}
+
+.fig-cell.is-shade {
+    fill: var(--mark);
+}
+
+.fig-cell-text {
+    font-family: var(--hand);
+    font-size: 17px;
+    font-weight: 600;
+    fill: var(--ink);
+}
+
+.fig-cell-text.small {
+    font-size: 13px;
+}
+
+.fig-cell-text.plain {
+    font-family: var(--ui);
+    font-size: 12px;
+    fill: var(--muted);
+}
+
+.fig-cell-text.accent {
+    fill: var(--red);
+}
+
+.figure-caption {
+    margin-top: 0.15rem;
+    color: var(--muted);
+    font-size: 0.8125rem;
+    font-weight: 700;
+}
+
+/* 順番のある図 (折り紙を折るところ) を、矢印でつないで横にならべる */
+.figure-steps {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem 0.5rem;
+}
+
+.figure-steps > .figure,
+.fill-sheet .figure-steps > .figure {
+    flex: 0 1 10.5rem;
+    width: auto;
+    margin: 0.5rem 0 0;
+}
+
+.figure-steps .figure-svg {
+    max-height: 11rem;
+}
+
+.figure-arrow {
+    color: var(--muted);
+    font-size: 1.25rem;
+}
+
 .fig-grid {
     stroke: var(--rule);
     stroke-width: 1;
@@ -1530,6 +1706,11 @@ button {
     font-size: 13px;
     font-weight: 700;
     fill: var(--ink);
+    /* 線の上にのっても読めるように、紙の色でふちどる */
+    paint-order: stroke;
+    stroke: var(--paper);
+    stroke-width: 3px;
+    stroke-linejoin: round;
 }
 
 .fig-text.small {
@@ -1637,6 +1818,26 @@ button {
     margin-top: 0;
 }
 
+.zukei-sample-options {
+    display: grid;
+    gap: 0.5rem;
+    max-width: 26rem;
+}
+
+.zukei-sample-options > div {
+    padding: 0.25rem;
+    box-shadow: 0 0 0 1px var(--rule-soft);
+}
+
+.zukei-sample-options > div.answer {
+    box-shadow: 0 0 0 2px var(--ink);
+    background: var(--mark-soft);
+}
+
+.pattern-list p.answer {
+    font-weight: 700;
+}
+
 /* ---- 画面のはばに合わせる ---- */
 @media (max-width: 54rem) {
     .long-layout {
@@ -1655,6 +1856,15 @@ button {
 @media (max-width: 30rem) {
     .options-container {
         grid-template-columns: 1fr;
+    }
+
+    .options-container.figure-options {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .figure-steps > .figure,
+    .fill-sheet .figure-steps > .figure {
+        flex-basis: 7.5rem;
     }
 
     .word-mode #question {
@@ -1787,6 +1997,17 @@ button {
 
     .quiz-body .option {
         font-size: clamp(2rem, 2.6vw, 2.75rem);
+    }
+
+    /* 図をえらぶ問題は、広い画面でも 2 × 2 にならべる */
+    .quiz-body .options-container.figure-options {
+        grid-template-columns: 1fr 1fr;
+        grid-auto-rows: auto;
+        align-content: start;
+    }
+
+    .quiz-body .option.option-figure {
+        font-size: 1.25rem;
     }
 
     .quiz-body #question {

@@ -3,6 +3,7 @@ import FigureSegments from './FigureSegments.vue';
 import FigureRoute from './FigureRoute.vue';
 import FigureGraph from './FigureGraph.vue';
 import FigureShape from './FigureShape.vue';
+import FigureGrid from './FigureGrid.vue';
 
 defineProps({ figure: { type: Object, required: true } });
 
@@ -13,6 +14,7 @@ const RENDERERS = {
     shape: FigureShape,
     tank: FigureShape,
     circle: FigureShape,
+    grid: FigureGrid,
 };
 </script>
 
@@ -29,6 +31,9 @@ const RENDERERS = {
                 </tr>
             </tbody>
         </table>
-        <component :is="RENDERERS[figure.type]" v-else :figure="figure" />
+        <template v-else>
+            <component :is="RENDERERS[figure.type]" :figure="figure" />
+            <figcaption v-if="figure.caption" class="figure-caption">{{ figure.caption }}</figcaption>
+        </template>
     </figure>
 </template>

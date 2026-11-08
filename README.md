@@ -12,6 +12,10 @@
     たとえば 13 を 4・4・4・1 に区切った線分図を見ながら、`13 ÷ 4 = [ ] … [ ]`、`(13 − 1) ÷ 4 = [ ]`、
     `[ ] × 3 + 1 = 13`、`(13 − [ ]) ÷ 4 = 3` の空欄に、テンキー（PC はキーボードでも）で数字を入れて答える。1問1点
 - 長文チャレンジ: 3年 / 4・5年 / 6年（中学受験型の長文60題。小問3問つき・10択・時間無制限、図やグラフつき）
+- 図形チャレンジ: 3・4年 / 5・6年（図を見て考える10問・時間無制限。答えたあとに解き方を見せる）
+  - まわりの長さ・四角形の面積・角度・マスと数・色をつけた部分の面積・立体・折り紙の7種類から、どれも1問以上出す
+  - 教科書レベルの問題に、くふうして解く「ひらめき問題」を1回に2〜3問まぜる
+  - 数の答えはテンキーで入れる。折り紙の「広げた形」は4つの図からえらぶ
 - 対戦: 2〜8人で同じ問題を同時に解いて、暗算の速さを競う（学年と出題数をえらぶ。Firebase Realtime Database）
 - スタンプカードとリスザルカード: 毎日遊ぶとスタンプとポイントがたまり、ポイントでリスザルのカードを集められる
 
@@ -308,3 +312,23 @@ FIREBASE_API_KEY=x FIREBASE_AUTH_DOMAIN=localhost FIREBASE_PROJECT_ID=demo-math-
 - 図は `src/long/figures.js` の `table` / `segments` / `route` / `graph` / `shape` で「種類＋数値」のデータとして返します。寸法の向きは `side: 'below' | 'above' | 'left' | 'right'` で指定します。
 - 本文の長さの目安（3年220字、4・5年350字、6年550字以上）はテストで確認しています。
 - `/?debug=patterns&view=long` で、全題を図つきで確認できます。
+
+## 図形問題の追加
+
+`src/zukei/` の種類ごとのファイル（`perimeter.js`・`area.js`・`angle.js`・`grid.js`・`shaded.js`・`volume.js`・`origami.js`）に、`pattern` で定義します。
+
+```js
+pattern('area', 'rect', ['mid'], r => fillQ({
+    text: 'たて3cm、横5cmの長方形の面積は何cm²ですか。',
+    figure: shape(5, 3, { polys: [{ points: rectPoints(0, 0, 5, 3), fill: 'shade' }] }),
+    answer: 15,
+    unit: 'cm²',
+    explain: '長方形の面積 = たて × 横。3 × 5 = 15（cm²）',
+}), { hirameki: false })
+```
+
+- 3つ目の引数は出す学年帯（`'mid'` / `'high'`）、`hirameki: true` はひらめき問題です。
+- 答えは、できるだけ図の座標から計算します（`perimeterOf`・`areaOf`）。円周率は `pi()` で 3.14 をかけます（小数は2けたまで）。
+- 図は `src/long/figures.js` の `shape`（角のしるし `angles`、円の弧 `paths`、円柱の底面 `ellipses`）と `grid`（マス目）、立体は `src/zukei/solid.js` の `prism`・`cubes` で作ります。
+- 折り紙は、折った紙の上の切り口を、折り目で鏡のように映して広げた形を作り、穴の数は紙を 64 × 64 のマスに分けて数えます（`src/zukei/origami.js`）。
+- `/?debug=patterns&view=zukei` で、全パターンを図・答え・解き方つきで確認できます。

@@ -1,10 +1,10 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import Figure from './figures/Figure.vue';
+import FigureList from './figures/FigureList.vue';
 
-// 空欄に数字を入れて答える問題 (線分図の問題・対戦の問題)。左に図と式、右にテンキーを出す
+// 空欄に数字を入れて答える問題 (線分図の問題・図形チャレンジ・対戦の問題)。左に問題文・図と式、右にテンキーを出す
 const props = defineProps({
-    question: { type: Object, required: true }, // src/word/segments.js や src/battle/questions.js の1問
+    question: { type: Object, required: true }, // src/word/segments.js・src/zukei/・src/battle/questions.js の1問
     selected: { type: Array, default: null }, // 答えた数 (答える前は null)
     maxLength: { type: Number, default: 2 }, // 1つの空欄に入れられる文字の数
     // ふえるたびに「まちがい」を見せて、入れた数を消す (対戦で、正解するまで同じ問題を解くとき)
@@ -35,9 +35,15 @@ watch(() => props.question, reset, { immediate: true });
 
 const answered = computed(() => props.selected !== null);
 
+/** 答えた数が合っているか (3.10 と 3.1 のように書き方がちがっても、同じ数なら正解) */
+function isRight(i) {
+    const [v, answer] = [props.selected[i], props.question.blanks[i]];
+    return String(v) === String(answer) || Number(v) === Number(answer);
+}
+
 function blankClass(i) {
     if (!answered.value) return { 'is-active': i === active.value };
-    const ok = String(props.selected[i]) === String(props.question.blanks[i]);
+    const ok = isRight(i);
     return { correct: ok, incorrect: !ok };
 }
 
@@ -78,7 +84,8 @@ function select(i) {
 
 // PC ではキーボードでも入力できる
 function onKey(e) {
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    // 答えたあとは、ほかのボタン (図形チャレンジの「つぎへ」など) のキー操作をじゃましない
+    if (e.ctrlKey || e.metaKey || e.altKey || answered.value) return;
     if (/^[0-9./]$/.test(e.key)) input(e.key);
     else if (e.key === 'Backspace') erase();
     else if (e.key === 'Enter') submit();
@@ -100,7 +107,8 @@ onUnmounted(() => {
     <div id="question-box" class="sheet fill-sheet">
         <p v-if="question.setIndex" class="fill-step">線分図 {{ question.setIndex }}/{{ question.setSize }}</p>
         <slot name="before" />
-        <Figure v-if="question.figure" :figure="question.figure" />
+        <p v-if="question.text" class="fill-question-text">{{ question.text }}</p>
+        <FigureList v-if="question.figure" :figure="question.figure" />
         <p id="question" class="fill-equation" :aria-label="question.parts.map(p => (typeof p === 'string' ? p : '□')).join('')">
             <template v-for="(part, i) in question.parts" :key="i">
                 <span v-if="typeof part === 'string'" class="fill-text">{{ part }}</span>
@@ -112,7 +120,7 @@ onUnmounted(() => {
                         :aria-label="`空欄${part.blank + 1}`"
                         @click="select(part.blank)"
                     >{{ answered ? selected[part.blank] : values[part.blank] }}</button>
-                    <span v-if="answered && selected[part.blank] !== question.blanks[part.blank]" class="fill-correct">{{ question.blanks[part.blank] }}</span>
+                    <span v-if="answered && !isRight(part.blank)" class="fill-correct">{{ question.blanks[part.blank] }}</span>
                 </span>
             </template>
         </p>
