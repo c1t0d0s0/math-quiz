@@ -12,7 +12,7 @@ const FILL_CORRECT_DELAY = 700;
 
 /**
  * 計算・文章問題（時間内に何問とけるか）と、今日のチャレンジ・図形チャレンジ（決まった10問。時間はむせいげん）の進行。
- * 図形チャレンジは、答えたあとに解き方を見せて、「つぎへ」(next) をおすまで待つ
+ * 図形問題 (図形チャレンジと、今日のチャレンジにまざる図形問題) は、答えたあとに解き方を見せて、「つぎへ」(next) をおすまで待つ
  */
 export function useQuiz(highScores) {
     const screen = ref('start'); // 'start' | 'quiz' | 'result'
@@ -32,6 +32,9 @@ export function useQuiz(highScores) {
     let fixed = null; // 今日のチャレンジ・図形チャレンジの10問
     let timer = null;
     let pending = null;
+
+    /** 今の問題が、答えたあとに「つぎへ」を待つ問題 (図形問題) か */
+    const waitsForNext = () => mode.value?.kind === 'zukei' || !!question.value?.topic;
 
     function stopTimers() {
         clearInterval(timer);
@@ -87,8 +90,8 @@ export function useQuiz(highScores) {
             total.value = fixed.length;
             timeLeft.value = 0;
             timer = setInterval(() => {
-                // 図形チャレンジで解き方を読んでいる間は、時間を数えない
-                if (next.kind === 'zukei' && selected.value !== null) return;
+                // 図形問題の解き方を読んでいる間は、時間を数えない
+                if (waitsForNext() && selected.value !== null) return;
                 elapsed.value++;
             }, 1000);
         } else {
@@ -123,14 +126,14 @@ export function useQuiz(highScores) {
             clearInterval(timer);
             timer = null;
         }
-        if (mode.value.kind === 'zukei') return;
+        if (waitsForNext()) return;
         const wait = correct ? (fill ? FILL_CORRECT_DELAY : CORRECT_DELAY) : WRONG_DELAY[question.value.isWord ? 'word' : 'calc'];
         pending = setTimeout(advance, wait);
     }
 
-    /** 図形チャレンジで、解き方を見たあとに次の問題へ進む */
+    /** 図形問題で、解き方を見たあとに次の問題へ進む */
     function next() {
-        if (screen.value !== 'quiz' || selected.value === null || mode.value.kind !== 'zukei') return;
+        if (screen.value !== 'quiz' || selected.value === null || !waitsForNext()) return;
         advance();
     }
 

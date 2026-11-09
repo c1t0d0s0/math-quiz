@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DAILY_COUNT, createDailyQuestions, hashString } from '../src/daily.js';
+import { DAILY_COUNT, DAILY_ZUKEI, createDailyQuestions, hashString } from '../src/daily.js';
 import { MODES, findMode } from '../src/modes.js';
 import { addDays, emptySummary, playReward, STAMP_POINTS } from '../src/rewards.js';
 import { isBetter, mergeRecords, toProgressDoc, fromProgressDoc } from '../src/cloud/records.js';
@@ -24,7 +24,7 @@ describe('今日のチャレンジの問題', () => {
     });
 
     it('日がちがえば、また学年帯がちがえば、ちがう問題になる', () => {
-        const key = qs => qs.map(q => q.question).join('|');
+        const key = qs => qs.map(q => q.question ?? q.text).join('|');
         const base = key(createDailyQuestions('mid', '2026-10-13'));
         expect(key(createDailyQuestions('mid', '2026-10-14'))).not.toBe(base);
         expect(key(createDailyQuestions('high', '2026-10-13'))).not.toBe(base);
@@ -38,15 +38,36 @@ describe('今日のチャレンジの問題', () => {
         expect(all.size).toBe(365);
     });
 
-    it('計算5問と文章問題5問で、どれも正しい形の4択。同じ問題は重ならない', () => {
+    it('1・2年は計算5問・文章問題5問、3・4年と5・6年は計算4問・文章問題4問・図形問題2問', () => {
+        expect(DAILY_ZUKEI).toEqual({ low: 0, mid: 2, high: 2 });
+        const counts = { low: [5, 5, 0], mid: [4, 4, 2], high: [4, 4, 2] };
+        let date = '2026-10-01';
+        for (let i = 0; i < 120; i++) {
+            for (const level of LEVELS) {
+                const qs = createDailyQuestions(level, date);
+                const zukei = qs.filter(q => q.topic);
+                const got = [qs.filter(q => !q.topic && !q.isWord).length, qs.filter(q => q.isWord).length, zukei.length];
+                expect(got, `${date} ${level}`).toEqual(counts[level]);
+                // 図形問題は、ちがう種類から1問ずつで、ひらめき問題は1問まで
+                expect(new Set(zukei.map(q => q.topic)).size, `${date} ${level}`).toBe(zukei.length);
+                expect(zukei.filter(q => q.hirameki).length, `${date} ${level}`).toBeLessThanOrEqual(1);
+                for (const q of zukei) {
+                    if (q.type === 'fill') expect(q.blanks.every(v => Number.isFinite(v) && v > 0), q.text).toBe(true);
+                    else expect(q.options, q.text).toContain(q.answer);
+                }
+            }
+            date = addDays(date, 1);
+        }
+    });
+
+    it('計算と文章問題は、どれも正しい形の4択。同じ問題は重ならない', () => {
         let date = '2026-10-01';
         for (let i = 0; i < 120; i++) {
             for (const level of LEVELS) {
                 const qs = createDailyQuestions(level, date);
                 const where = `${date} ${level}`;
-                expect(qs.filter(q => q.isWord), where).toHaveLength(5);
-                expect(new Set(qs.map(q => q.question)).size, where).toBe(DAILY_COUNT);
-                for (const q of qs) {
+                expect(new Set(qs.map(q => q.question ?? q.text)).size, where).toBe(DAILY_COUNT);
+                for (const q of qs.filter(x => !x.topic)) {
                     expect(q.options, `${where}: ${q.question}`).toHaveLength(4);
                     expect(new Set(q.options).size, `${where}: ${q.question}`).toBe(4);
                     expect(q.options, `${where}: ${q.question}`).toContain(q.answer);

@@ -20,7 +20,8 @@ const props = defineProps({
 defineEmits(['answer', 'next', 'quit']);
 
 const isFixed = computed(() => props.mode.kind === 'daily' || props.mode.kind === 'zukei');
-const isZukei = computed(() => props.mode.kind === 'zukei');
+// 図形問題 (図形チャレンジと、今日のチャレンジにまざる図形問題)
+const isZukei = computed(() => props.mode.kind === 'zukei' || !!props.question.topic);
 // 文章問題は、文字を小さめにして左によせる
 const isWord = computed(() => props.mode.kind === 'word' || !!props.question.isWord);
 
