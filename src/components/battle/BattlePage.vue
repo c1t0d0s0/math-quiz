@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import FillQuestion from '../FillQuestion.vue';
+import MemoPad from '../MemoPad.vue';
 import {
     MAX_PLAYERS, NAME_MAX, battleOutcome, cleanName, everyoneDone, formatMs, parseCode, seatOf, standings,
 } from '../../battle/battle.js';
@@ -447,6 +448,8 @@ onUnmounted(() => {
                 <div v-if="phase === 'play' && current" class="quiz-body battle-body">
                     <FillQuestion :question="current" :max-length="6" :wrong-signal="wrongSignal" @answer="onAnswer" />
                 </div>
+                <!-- まちがえて同じ問題をやりなおすあいだはメモを残す -->
+                <MemoPad v-if="phase === 'play'" :reset-key="solved" />
                 <section v-else class="battle-card battle-message" role="status">
                     <p>{{ me?.retired ? 'リタイアしました。' : 'ゴール！' }} ほかの人が終わるのを待っています…</p>
                 </section>

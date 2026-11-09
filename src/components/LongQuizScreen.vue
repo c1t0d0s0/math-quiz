@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue';
 import Figure from './figures/Figure.vue';
+import MemoPad from './MemoPad.vue';
 import { formatTime } from '../modes.js';
 import { QUESTIONS_PER_PROBLEM } from '../long/index.js';
 
@@ -92,5 +93,8 @@ function quit() {
                 </div>
             </section>
         </div>
+
+        <!-- メモは大問ごとに消す (小問のあいだは残す) -->
+        <MemoPad :reset-key="problemIndex" />
     </main>
 </template>

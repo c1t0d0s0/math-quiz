@@ -86,6 +86,9 @@ function select(i) {
 function onKey(e) {
     // 答えたあとは、ほかのボタン (図形チャレンジの「つぎへ」など) のキー操作をじゃましない
     if (e.ctrlKey || e.metaKey || e.altKey || answered.value) return;
+    // メモなど、文字を入れる欄に打っているときは横取りしない
+    const t = e.target;
+    if (t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
     if (/^[0-9./]$/.test(e.key)) input(e.key);
     else if (e.key === 'Backspace') erase();
     else if (e.key === 'Enter') submit();

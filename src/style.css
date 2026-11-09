@@ -2073,10 +2073,181 @@ button {
     }
 }
 
+/* ---- メモ (問題を解くときの一時的なメモ) ---- */
+.memo-spacer {
+    height: 3.5rem;
+}
+
+.memo-spacer.is-open {
+    height: calc(min(45dvh, 22rem) + 1rem);
+}
+
+.memo-toggle {
+    position: fixed;
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    z-index: 20;
+    min-height: 2.75rem;
+    padding: 0 1.2rem;
+    border: 1px solid var(--ink);
+    border-radius: 999px;
+    background: var(--paper);
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 0.9375rem;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.18);
+    cursor: pointer;
+}
+
+.memo-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 19;
+    display: flex;
+    flex-direction: column;
+    height: calc(min(45dvh, 22rem) + env(safe-area-inset-bottom));
+    padding: 0.5rem 0.75rem calc(0.6rem + env(safe-area-inset-bottom));
+    background: var(--paper);
+    border-top: 2px solid var(--rule);
+    box-shadow: 0 -4px 16px rgb(0 0 0 / 0.15);
+    animation: memo-up 0.18s ease-out;
+}
+
+@keyframes memo-up {
+    from {
+        transform: translateY(1.5rem);
+        opacity: 0;
+    }
+}
+
+.memo-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+    margin-bottom: 0.45rem;
+}
+
+.memo-tabs,
+.memo-tools {
+    display: flex;
+    gap: 0.3rem;
+}
+
+.memo-tab,
+.memo-tool {
+    min-height: 2.25rem;
+    padding: 0 0.85rem;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: var(--paper);
+    font-weight: 700;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+.memo-close {
+    min-height: 2.25rem;
+    margin-left: 0.4rem;
+    padding: 0 0.85rem;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+.memo-tab.is-active,
+.memo-tool.is-active {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--on-ink);
+}
+
+.memo-tool:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.memo-body {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+}
+
+.memo-canvas,
+.memo-text {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 1px solid var(--rule-soft);
+    border-radius: 0.5rem;
+    background-color: var(--paper);
+    /* 方眼のノート */
+    background-image:
+        linear-gradient(var(--rule-soft) 1px, transparent 1px),
+        linear-gradient(90deg, var(--rule-soft) 1px, transparent 1px);
+    background-size: 1.5rem 1.5rem;
+    background-position: -1px -1px;
+}
+
+.memo-canvas {
+    touch-action: none;
+    cursor: crosshair;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.memo-canvas.is-eraser {
+    cursor: cell;
+}
+
+.memo-text {
+    resize: none;
+    padding: 0.2rem 0.6rem;
+    color: var(--ink);
+    font-family: var(--hand);
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+    background-image: linear-gradient(transparent calc(1.5rem - 1px), var(--rule-soft) calc(1.5rem - 1px));
+    background-size: 100% 1.5rem;
+    background-position: 0 0.2rem;
+    background-attachment: local;
+}
+
+.memo-text:focus {
+    outline: 2px solid var(--rule);
+    outline-offset: -1px;
+}
+
+@media (min-width: 64rem) {
+    /* 広い画面では右下のカードにして、問題を広く見せる */
+    .memo-panel {
+        left: auto;
+        right: 1rem;
+        bottom: 1rem;
+        width: 28rem;
+        height: min(50vh, 20rem);
+        padding-bottom: 0.6rem;
+        border: 2px solid var(--rule);
+        border-radius: 0.9rem;
+    }
+
+    /* カードの下にかくれた答えのボタンも、スクロールすれば出てくるようにする */
+    .memo-spacer.is-open {
+        height: calc(min(50vh, 20rem) + 2rem);
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .hanamaru.is-drawn polyline,
     .card.is-new .card-face,
-    .option.incorrect {
+    .option.incorrect,
+    .memo-panel {
         animation: none;
     }
 }

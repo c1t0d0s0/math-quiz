@@ -4,6 +4,7 @@ import { formatTime } from '../modes.js';
 import FillQuestion from './FillQuestion.vue';
 import Figure from './figures/Figure.vue';
 import FigureList from './figures/FigureList.vue';
+import MemoPad from './MemoPad.vue';
 
 const props = defineProps({
     mode: { type: Object, required: true },
@@ -143,5 +144,7 @@ watch(() => props.selected, async (value) => {
             <p v-if="question.explain" class="zukei-explain"><b>解き方</b>{{ question.explain }}</p>
             <button id="zukei-next" type="button" class="btn btn-primary" @click="$emit('next')">{{ isLast ? '結果を見る' : 'つぎへ' }}</button>
         </section>
+
+        <MemoPad :reset-key="question" />
     </main>
 </template>
