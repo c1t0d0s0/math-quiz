@@ -8,6 +8,8 @@ const scoreKey = modeId => `math_quiz_highscore_${modeId}`;
 const timeKey = modeId => `math_quiz_besttime_${modeId}`;
 // 今日のチャレンジで、その記録を出した日
 const dateKey = modeId => `math_quiz_recorddate_${modeId}`;
+// 長文チャレンジ・図形チャレンジで、いちばん新しく全問正解した日
+const perfectKey = modeId => `math_quiz_perfectdate_${modeId}`;
 // 前にログインしたままだったか。ページを開いた直後、ログインを確かめ終わる前に、
 // ログインなしの記録を一瞬見せてしまわないために使う（記録そのものは入れない）
 const SIGNED_IN_KEY = 'math_quiz_signed_in';
@@ -39,6 +41,8 @@ export function readLocalRecords() {
             records[mode.id] = { score, seconds: readNumber(timeKey(mode.id)) };
             const date = readText(dateKey(mode.id));
             if (/^\d{4}-\d{2}-\d{2}$/.test(date)) records[mode.id].date = date;
+            const perfect = readText(perfectKey(mode.id));
+            if (/^\d{4}-\d{2}-\d{2}$/.test(perfect)) records[mode.id].perfect = perfect;
         }
     }
     return records;
@@ -50,6 +54,7 @@ export function writeLocalRecord(modeId, record) {
         if (record.seconds > 0) localStorage.setItem(timeKey(modeId), String(record.seconds));
         else localStorage.removeItem(timeKey(modeId));
         if (record.date) localStorage.setItem(dateKey(modeId), record.date);
+        if (record.perfect) localStorage.setItem(perfectKey(modeId), record.perfect);
     } catch {
         // 保存できなくても、この画面の間は記録を表示する
     }
@@ -83,6 +88,7 @@ export function clearLocalRecords() {
             localStorage.removeItem(scoreKey(mode.id));
             localStorage.removeItem(timeKey(mode.id));
             localStorage.removeItem(dateKey(mode.id));
+            localStorage.removeItem(perfectKey(mode.id));
         }
     } catch {
         // 消せなくても続ける

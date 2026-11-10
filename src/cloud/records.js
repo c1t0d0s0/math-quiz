@@ -5,6 +5,8 @@ import { emptySummary, mergeSummary } from '../rewards.js';
 //
 // 記録1つ: { score: 正解数, seconds: かかった秒数 }（時間を記録しないモードでは seconds は 0）
 //          今日のチャレンジだけは { score, seconds, date: その記録を出した日 }。新しい日の記録が、前の日の記録に勝つ
+//          長文チャレンジと図形チャレンジは { score, seconds, perfect?: いちばん新しい、全問正解した日 }。
+//          perfect は、記録のよしあしをくらべるときには使わない (ホームの花丸を、その日だけ出すのに使う)
 // 1人分:   { [モードの id]: 記録 }
 
 // ---- Firestore に保存する形 (小学生向けの学習アプリで共通。Wordlynx と同じ) ----
@@ -28,7 +30,8 @@ export function isBetter(a, b) {
 }
 
 export function sameRecord(a, b) {
-    return !!a && !!b && a.score === b.score && a.seconds === b.seconds && (a.date ?? '') === (b.date ?? '');
+    return !!a && !!b && a.score === b.score && a.seconds === b.seconds && (a.date ?? '') === (b.date ?? '')
+        && (a.perfect ?? '') === (b.perfect ?? '');
 }
 
 const isDate = v => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
@@ -37,7 +40,20 @@ const isDate = v => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
 function clean(record) {
     const out = { score: record.score, seconds: record.seconds || 0 };
     if (isDate(record.date)) out.date = record.date;
+    if (isDate(record.perfect)) out.perfect = record.perfect;
     return out;
+}
+
+/**
+ * 2つの記録を1つにする。よいほうの記録に、2つのうち新しいほうの「全問正解した日」をつける。
+ * 全問正解でも最高記録より時間がかかったときは、記録はそのままで、全問正解した日だけ新しくなる。
+ * どちらにも記録がなければ undefined
+ */
+export function combineRecords(a, b) {
+    const best = isBetter(b, a) ? b : a;
+    if (!best || !(best.score > 0)) return undefined;
+    const perfect = [a?.perfect, b?.perfect].filter(isDate).sort().pop();
+    return clean(perfect ? { ...best, perfect } : best);
 }
 
 /**
@@ -47,8 +63,8 @@ function clean(record) {
 export function mergeRecords(a, b) {
     const out = {};
     for (const id of [...new Set([...Object.keys(a), ...Object.keys(b)])].sort()) {
-        const best = isBetter(b[id], a[id]) ? b[id] : a[id];
-        if (best && best.score > 0) out[id] = clean(best);
+        const record = combineRecords(a[id], b[id]);
+        if (record) out[id] = record;
     }
     return out;
 }
@@ -92,5 +108,5 @@ export function toProgressDoc(record, now) {
 export function fromProgressDoc(doc) {
     const d = doc?.data;
     if (!d || !Number.isInteger(d.score) || d.score <= 0) return null;
-    return clean({ score: d.score, seconds: Number.isInteger(d.seconds) && d.seconds > 0 ? d.seconds : 0, date: d.date });
+    return clean({ score: d.score, seconds: Number.isInteger(d.seconds) && d.seconds > 0 ? d.seconds : 0, date: d.date, perfect: d.perfect });
 }
