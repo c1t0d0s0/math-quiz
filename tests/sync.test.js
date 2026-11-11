@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { RecordSync } from '../src/cloud/sync.js';
-import { isBetter, mergeRecords, toProgressDoc, fromProgressDoc, toAppDoc, fromAppDoc, APP_ID } from '../src/cloud/records.js';
+import { combineRecords, isBetter, mergeRecords, toProgressDoc, fromProgressDoc, toAppDoc, fromAppDoc, APP_ID } from '../src/cloud/records.js';
 import { emptySummary } from '../src/rewards.js';
 
 // ---- 代用品 ----
@@ -138,6 +138,40 @@ describe('記録のくらべ方', () => {
             .toEqual({ stamps: [], clears: ['clear:mixed'], cards: [] });
     });
 
+    it('全問正解した日は、よしあしにかかわらず新しいほうを残す', () => {
+        const perfect = (score, seconds, day) => ({ score, seconds, perfect: day });
+        // 全問正解でも、前より遅いときは、記録はそのままで日だけ新しくなる
+        expect(combineRecords(perfect(9, 300, '2026-11-01'), perfect(9, 400, '2026-11-10'))).toEqual(perfect(9, 300, '2026-11-10'));
+        // 記録を更新しても、前の日の花丸の日を消さない
+        expect(combineRecords(perfect(7, 200, '2026-11-01'), rec(8, 500))).toEqual(perfect(8, 500, '2026-11-01'));
+        expect(combineRecords(undefined, perfect(9, 300, '2026-11-10'))).toEqual(perfect(9, 300, '2026-11-10'));
+        expect(combineRecords(undefined, undefined)).toBeUndefined();
+        // 形のくずれた日は落とす
+        expect(combineRecords(rec(9, 300), { score: 9, seconds: 300, perfect: 'x' })).toEqual(rec(9, 300));
+        // 花丸の日は、記録のよしあしには使わない
+        expect(isBetter(perfect(9, 400, '2026-11-10'), perfect(9, 300, '2026-11-01'))).toBe(false);
+    });
+
+    it('全問正解した日も、順番を入れかえても、何回合わせても同じ結果になる', () => {
+        const a = { 'zukei-mid': { score: 10, seconds: 300, perfect: '2026-11-01' }, 'long-g3': rec(7, 300) };
+        const b = { 'zukei-mid': { score: 9, seconds: 200, perfect: '2026-10-01' }, 'long-g3': { score: 9, seconds: 500, perfect: '2026-11-09' } };
+        const merged = mergeRecords(a, b);
+        expect(merged).toEqual({
+            'long-g3': { score: 9, seconds: 500, perfect: '2026-11-09' },
+            'zukei-mid': { score: 10, seconds: 300, perfect: '2026-11-01' },
+        });
+        expect(mergeRecords(b, a)).toEqual(merged);
+        expect(mergeRecords(merged, merged)).toEqual(merged);
+    });
+
+    it('全問正解した日も、Firestore の形に直して、もとにもどせる', () => {
+        const record = { score: 9, seconds: 300, perfect: '2026-11-10' };
+        const doc = toProgressDoc(record, 1);
+        expect(doc.data).toEqual(record);
+        expect(fromProgressDoc(doc)).toEqual(record);
+        expect(fromProgressDoc({ data: { score: 9, seconds: 300, perfect: 20261110 } })).toEqual(rec(9, 300));
+    });
+
     it('形がくずれたデータは読まない', () => {
         expect(fromProgressDoc(null)).toBeNull();
         expect(fromProgressDoc({ data: { score: 'x' } })).toBeNull();
@@ -260,6 +294,23 @@ describe('ログイン中の記録', () => {
         await settle(d.sync);
         expect(cloud.of('alice')).toEqual({ addition: rec(15), division: rec(4), mixed: rec(6) });
         expect(d.state.shown).toEqual(cloud.of('alice'));
+    });
+
+    it('ほかの端末で全問正解した日を、記録をへらさずに取りこむ', async () => {
+        const cloud = new FakeCloud();
+        const a = device(cloud);
+        const b = device(cloud);
+        a.auth.emit('alice');
+        b.auth.emit('alice');
+        await settle(a.sync);
+        await settle(b.sync);
+        b.sync.submit('zukei-high', { score: 10, seconds: 200, perfect: '2026-11-01' });
+        await settle(b.sync);
+        // 遅いけれど、今日また全問正解した
+        a.sync.submit('zukei-high', { score: 10, seconds: 500, perfect: '2026-11-10' });
+        await settle(a.sync);
+        expect(cloud.of('alice')['zukei-high']).toEqual({ score: 10, seconds: 200, perfect: '2026-11-10' });
+        expect(a.state.shown['zukei-high']).toEqual({ score: 10, seconds: 200, perfect: '2026-11-10' });
     });
 
     it('送れなかった記録は、つながったら送る', async () => {

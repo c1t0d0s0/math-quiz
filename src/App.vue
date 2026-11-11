@@ -120,6 +120,7 @@ function start(modeId) {
         :high-scores="highScores.scores"
         :best-times="highScores.times"
         :record-dates="highScores.dates"
+        :perfect-dates="highScores.perfects"
         :account="highScores.account"
         :sign-in="highScores.signIn"
         :sign-out="highScores.signOut"

@@ -15,6 +15,8 @@ const props = defineProps({
     highScores: { type: Object, required: true },
     bestTimes: { type: Object, default: () => ({}) },
     recordDates: { type: Object, default: () => ({}) },
+    // 長文チャレンジ・図形チャレンジで、いちばん新しく全問正解した日
+    perfectDates: { type: Object, default: () => ({}) },
     account: { type: Object, default: () => ({ available: false }) },
     signIn: { type: Function, default: null },
     signOut: { type: Function, default: null },
@@ -60,7 +62,8 @@ function dailyRecord(mode) {
     return `今日: ${props.highScores[mode.id]}/${DAILY_COUNT}問` + (time ? `（${formatTime(time)}）` : '');
 }
 
-const isPerfect = mode => ((mode.kind === 'long' || mode.kind === 'zukei') && props.highScores[mode.id] === totalOf(mode))
+// 花丸は、全問正解したその日だけ出す
+const isPerfect = mode => ((mode.kind === 'long' || mode.kind === 'zukei') && props.perfectDates[mode.id] === today)
     || (mode.kind === 'daily' && playedToday(mode) && props.highScores[mode.id] === DAILY_COUNT);
 </script>
 

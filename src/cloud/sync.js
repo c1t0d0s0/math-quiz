@@ -1,4 +1,4 @@
-import { hasRecords, isBetter, mergeRecords, sameRecord } from './records.js';
+import { combineRecords, hasRecords, mergeRecords, sameRecord } from './records.js';
 import { emptySummary, hasSummary, mergeSummary, sameSummary } from '../rewards.js';
 
 /**
@@ -76,7 +76,7 @@ export class RecordSync {
     /** ログイン中に新しい記録が出た。おぼえておいて、Firestore に送る */
     submit(modeId, record) {
         if (this.uid === null) return;
-        if (isBetter(record, this.records[modeId])) this.records[modeId] = record;
+        this.records[modeId] = combineRecords(this.records[modeId], record) ?? this.records[modeId];
         this.dirty.add(modeId);
         this.setStatus('syncing');
         void this.enqueue(() => this.push());
@@ -243,9 +243,10 @@ export class RecordSync {
             const mine = this.records[id];
             const theirs = await this.remote.loadRecord(uid, id);
             if (this.uid !== uid) return;
-            const best = isBetter(theirs, mine) ? theirs : mine;
+            // 最高記録と、全問正解した日を、それぞれよいほう (新しいほう) にする
+            const best = combineRecords(theirs, mine);
             if (!best) continue;
-            if (!sameRecord(best, this.records[id]) && !isBetter(this.records[id], best)) {
+            if (!sameRecord(best, this.records[id])) {
                 this.records[id] = best;
                 changed = true;
             }

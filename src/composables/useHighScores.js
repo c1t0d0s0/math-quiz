@@ -1,7 +1,7 @@
 import { reactive, computed, onMounted } from 'vue';
 import { MODES, findMode } from '../modes.js';
 import { cloudAvailable, startCloud } from '../cloud/index.js';
-import { isBetter } from '../cloud/records.js';
+import { combineRecords, isBetter, sameRecord } from '../cloud/records.js';
 import {
     clearLocalRecords, readLocalRecords, readLocalSummary, rememberSignedIn, wasSignedIn, writeLocalRecord, writeLocalSummary,
 } from '../cloud/local.js';
@@ -19,6 +19,8 @@ export function useHighScores() {
     const times = reactive({});
     /** 今日のチャレンジで、その記録を出した日 (ほかのモードは '') */
     const dates = reactive({});
+    /** 長文チャレンジ・図形チャレンジで、いちばん新しく全問正解した日 (ホームの花丸に使う) */
+    const perfects = reactive({});
     /** スタンプ・「やったね」の記録・カード (src/rewards.js の summary の形) */
     const rewards = reactive(emptySummary());
     const points = computed(() => balance(rewards));
@@ -41,6 +43,7 @@ export function useHighScores() {
             scores[mode.id] = records[mode.id]?.score ?? 0;
             times[mode.id] = records[mode.id]?.seconds ?? 0;
             dates[mode.id] = records[mode.id]?.date ?? '';
+            perfects[mode.id] = records[mode.id]?.perfect ?? '';
         }
         Object.assign(rewards, mergeSummary(emptySummary(), summary));
     }
@@ -63,8 +66,10 @@ export function useHighScores() {
             sync.submit(modeId, record);
         } else if (undecided()) {
             earlyRecords[modeId] = record;
-        } else if (isBetter(record, readLocalRecords()[modeId])) {
-            writeLocalRecord(modeId, record);
+        } else {
+            const current = readLocalRecords()[modeId];
+            const next = combineRecords(current, record);
+            if (next && !sameRecord(next, current)) writeLocalRecord(modeId, next);
         }
     }
 
@@ -90,21 +95,25 @@ export function useHighScores() {
     /**
      * スコアを記録する。最高記録を更新したら true を返す。
      * seconds を渡すと、同じ正解数のときは時間が短いほうを最高記録にする。
-     * date を渡すと (今日のチャレンジ)、その日の記録としてあつかい、前の日の記録を置きかえる
+     * date を渡すと (今日のチャレンジ)、その日の記録としてあつかい、前の日の記録を置きかえる。
+     * perfect を渡すと (長文・図形チャレンジで全問正解した日)、最高記録を更新しなくても、その日をおぼえる
      */
-    function submit(modeId, score, seconds, date) {
+    function submit(modeId, score, seconds, date, perfect) {
         const record = { score, seconds: seconds ?? 0 };
         if (date) record.date = date;
-        const current = { score: scores[modeId], seconds: times[modeId] };
-        if (dates[modeId]) current.date = dates[modeId];
-        if (!isBetter(record, current)) {
-            return false;
-        }
-        scores[modeId] = record.score;
-        times[modeId] = record.seconds;
-        dates[modeId] = record.date ?? '';
-        saveRecord(modeId, record);
-        return true;
+        if (perfect) record.perfect = perfect;
+        const current = scores[modeId] > 0 ? { score: scores[modeId], seconds: times[modeId] } : undefined;
+        if (current && dates[modeId]) current.date = dates[modeId];
+        if (current && perfects[modeId]) current.perfect = perfects[modeId];
+        const isNewRecord = isBetter(record, current);
+        const next = combineRecords(current, record);
+        if (!next || sameRecord(next, current)) return isNewRecord;
+        scores[modeId] = next.score;
+        times[modeId] = next.seconds;
+        dates[modeId] = next.date ?? '';
+        perfects[modeId] = next.perfect ?? '';
+        saveRecord(modeId, next);
+        return isNewRecord;
     }
 
     /**
@@ -115,7 +124,9 @@ export function useHighScores() {
     function finish(modeId, score, seconds, total) {
         const mode = findMode(modeId);
         const today = jstDate();
-        const isNewRecord = submit(modeId, score, seconds, mode.kind === 'daily' ? today : undefined);
+        // 長文・図形チャレンジで全問正解したら、その日をおぼえる (ホームの花丸は、その日だけ出す)
+        const perfect = (mode.kind === 'long' || mode.kind === 'zukei') && total > 0 && score === total ? today : undefined;
+        const isNewRecord = submit(modeId, score, seconds, mode.kind === 'daily' ? today : undefined, perfect);
         const reward = playReward(mergeSummary(emptySummary(), rewards), mode, score, total ?? 0, today);
         if (reward.gained > 0 || reward.stampAdded || reward.dailyAdded) {
             Object.assign(rewards, reward.summary);
@@ -168,6 +179,7 @@ export function useHighScores() {
         scores,
         times,
         dates,
+        perfects,
         rewards,
         points,
         account,
