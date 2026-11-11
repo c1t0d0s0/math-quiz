@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { DAILY_COUNT, DAILY_ZUKEI, createDailyQuestions, hashString } from '../src/daily.js';
 import { MODES, findMode } from '../src/modes.js';
-import { addDays, emptySummary, playReward, STAMP_POINTS } from '../src/rewards.js';
-import { isBetter, mergeRecords, toProgressDoc, fromProgressDoc } from '../src/cloud/records.js';
+import { addDays, balance, emptySummary, mergeSummary, playReward, STAMP_POINTS } from '../src/rewards.js';
+import { isBetter, mergeRecords, toProgressDoc, fromProgressDoc, toAppDoc, fromAppDoc } from '../src/cloud/records.js';
 
 const LEVELS = ['low', 'mid', 'high'];
 const LOW_KANJI = '円時分本人日';
@@ -128,7 +128,33 @@ describe('今日のチャレンジの記録', () => {
     it('5問以上正解するとスタンプをもらえる。「はじめて」のポイントはつかない', () => {
         const r = playReward(emptySummary(), findMode('daily-mid'), 10, 10, '2026-10-13');
         expect(r).toMatchObject({ stampAdded: true, clearPoints: 0, gained: STAMP_POINTS });
-        expect(r.summary.clears).toEqual([]);
+        expect(r.summary.clears).toEqual(['daily:2026-10-13']);
         expect(playReward(emptySummary(), findMode('daily-mid'), 4, 10, '2026-10-13').stampAdded).toBe(false);
+    });
+
+    it('最後まで解いた日を、点数に関係なく1日1個だけ記録する。ポイントは変わらない', () => {
+        const mid = findMode('daily-mid');
+        const first = playReward(emptySummary(), mid, 0, 10, '2026-10-13');
+        expect(first).toMatchObject({ dailyAdded: true, stampAdded: false, gained: 0 });
+        expect(first.summary.clears).toEqual(['daily:2026-10-13']);
+        expect(balance(first.summary)).toBe(0);
+
+        // 同じ日のやり直しや、ほかの学年のチャレンジでは増えない
+        const again = playReward(first.summary, findMode('daily-low'), 10, 10, '2026-10-13');
+        expect(again.dailyAdded).toBe(false);
+        expect(again.summary.clears).toEqual(['daily:2026-10-13']);
+
+        const next = playReward(again.summary, mid, 3, 10, '2026-10-14');
+        expect(next.summary.clears).toEqual(['daily:2026-10-13', 'daily:2026-10-14']);
+
+        // 今日のチャレンジ以外のモードでは記録しない
+        expect(playReward(emptySummary(), findMode('addition'), 3, 0, '2026-10-13')).toMatchObject({ dailyAdded: false, summary: emptySummary() });
+    });
+
+    it('解いた日の記録は、2か所の記録を合わせても、Firestore を通しても残る', () => {
+        const a = { ...emptySummary(), clears: ['daily:2026-10-13'] };
+        const b = { ...emptySummary(), clears: ['daily:2026-10-14', 'daily:x', 'clear:mixed'] };
+        expect(mergeSummary(a, b).clears).toEqual(['clear:mixed', 'daily:2026-10-13', 'daily:2026-10-14']);
+        expect(fromAppDoc(toAppDoc(a, 1)).clears).toEqual(['daily:2026-10-13']);
     });
 });

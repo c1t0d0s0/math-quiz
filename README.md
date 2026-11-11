@@ -218,7 +218,7 @@ users/{uid}                                   その人の情報 (全アプリ�
 users/{uid}/apps/math-quiz                    アプリごとの記録のまとめ
   schema: 1, updatedAt
   activeDays: string[]                        スタンプをもらった日 (YYYY-MM-DD)
-  completed:  string[]                        「はじめて」の記録 ("clear:<モード>" / "perfect:<モード>")
+  completed:  string[]                        「はじめて」の記録 ("clear:<モード>" / "perfect:<モード>")、今日のチャレンジを解いた日 ("daily:<日付>")
   inventory:  { [カードの id]: { paid } }      交換したリスザルカードと、使ったポイント
   spent: {}, settings: {}                     このアプリでは使わない
 

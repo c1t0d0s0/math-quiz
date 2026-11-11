@@ -3,6 +3,7 @@
 // ごほうびの記録 (summary) の形:
 //   { stamps: ['2026-10-13', …],  スタンプをもらった日
 //     clears: ['clear:addition', 'perfect:long-g3', …],  1回だけもらえる「やったね」の記録
+//             'daily:2026-11-11' は、今日のチャレンジを最後まで解いた日 (ポイントはつかない)
 //     cards:  [{ id: 'm01', paid: 40 }, …] }  交換したカードと、そのとき使ったポイント
 //
 // ポイントは合計を保存せず、スタンプと「やったね」の記録から毎回計算する (二重にもらったり取りこぼしたりしない)。
@@ -105,6 +106,19 @@ export function achievement(mode, score, total) {
     return score >= CLEAR_SCORE ? `clear:${mode.id}` : null;
 }
 
+// 今日のチャレンジを最後まで解いた日は「やったね」と同じ記録 (clears) に、daily:<日付> として入れる。
+// 点数に関係なく1日1個。ポイントはつかない (まなびの動物園が、何日つづけたかを数えるのに使う)
+const DAILY_ID = /^daily:\d{4}-\d{2}-\d{2}$/;
+
+/** 今日のチャレンジを解いた日の記録の名前 */
+export function dailyId(date) {
+    return `daily:${date}`;
+}
+
+export function isDailyId(id) {
+    return typeof id === 'string' && DAILY_ID.test(id);
+}
+
 // 対戦の結果は「やったね」と同じ記録 (clears) に、battle:<日付>:<部屋のコード>-<回>:win|lose として入れる
 const BATTLE_ID = /^battle:(\d{4}-\d{2}-\d{2}):(\d{5}-\d+):(win|lose)$/;
 
@@ -203,12 +217,17 @@ export function playReward(summary, mode, score, total, today) {
 
     const id = achievement(mode, score, total);
     const clearAdded = id !== null && !summary.clears.includes(id);
-    const clears = clearAdded ? [...summary.clears, id].sort() : summary.clears;
+    const daily = mode.kind === 'daily' ? dailyId(today) : null;
+    const dailyAdded = daily !== null && !summary.clears.includes(daily);
+    const added = [...(clearAdded ? [id] : []), ...(dailyAdded ? [daily] : [])];
+    const clears = added.length > 0 ? [...summary.clears, ...added].sort() : summary.clears;
 
-    const next = stampAdded || clearAdded ? { ...summary, stamps, clears } : summary;
+    const next = stampAdded || added.length > 0 ? { ...summary, stamps, clears } : summary;
     return {
         summary: next,
         stampAdded,
+        /** 今日のチャレンジを、今日はじめて最後まで解いた */
+        dailyAdded,
         /** 今日まで何日つづいているか */
         run: runEndingAt(stamps, today),
         stampPoints: stampAdded ? STAMP_POINTS : 0,
@@ -241,7 +260,7 @@ function mergeCards(a, b) {
 export function mergeSummary(a, b) {
     return {
         stamps: normalizeStamps([...a.stamps, ...b.stamps]),
-        clears: [...new Set([...a.clears, ...b.clears].filter(id => clearPoints(id) > 0 || battlePoints(id) > 0))].sort(),
+        clears: [...new Set([...a.clears, ...b.clears].filter(id => clearPoints(id) > 0 || battlePoints(id) > 0 || isDailyId(id)))].sort(),
         cards: mergeCards(a.cards, b.cards),
     };
 }

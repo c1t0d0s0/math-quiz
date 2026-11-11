@@ -117,7 +117,7 @@ export function useHighScores() {
         const today = jstDate();
         const isNewRecord = submit(modeId, score, seconds, mode.kind === 'daily' ? today : undefined);
         const reward = playReward(mergeSummary(emptySummary(), rewards), mode, score, total ?? 0, today);
-        if (reward.gained > 0 || reward.stampAdded) {
+        if (reward.gained > 0 || reward.stampAdded || reward.dailyAdded) {
             Object.assign(rewards, reward.summary);
             saveSummary(reward.summary);
         }
