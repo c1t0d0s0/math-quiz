@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import FillQuestion from './FillQuestion.vue';
 import Figure from './figures/Figure.vue';
 import FigureList from './figures/FigureList.vue';
+import MemoPad from './MemoPad.vue';
 import { SECTIONS } from '../kentei/levels.js';
 
 // 算数検定もぎ試験の1問。答えても、その場では正解かどうかを見せずに次の問題へ進む
@@ -82,5 +83,8 @@ function quit() {
         <p class="kentei-skip">
             <button id="kentei-skip" type="button" class="btn" @click="emit('skip')">わからない（つぎの問題へ）</button>
         </p>
+
+        <!-- 計算や考えたことのメモ。次の問題に進むと消える -->
+        <MemoPad :reset-key="index" />
     </main>
 </template>
