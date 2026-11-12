@@ -6,7 +6,7 @@ import { SECTIONS } from '../kentei/levels.js';
 import { answerText } from '../kentei/exam.js';
 
 // 算数検定もぎ試験の結果。合格かどうか、分野ごとの正解の数、まちがえた問題と正しい答え
-defineProps({
+const props = defineProps({
     mode: { type: Object, required: true },
     level: { type: Object, required: true }, // src/kentei/levels.js の examLevel
     result: { type: Object, required: true }, // src/composables/useKentei.js の result
@@ -18,7 +18,8 @@ const promptOf = q => (q.type === 'choice' ? q.question : q.label || q.text);
 
 /** 自分の答え */
 function givenText(m) {
-    if (!m.answered) return '（時間切れ）';
+    // 答えなかった問題 (時間切れで終わったときは、時間切れと出す)
+    if (!m.answered) return props.result.timedOut ? '（時間切れ）' : '答えなかった';
     if (m.given === null || m.given === undefined) return 'わからない';
     return Array.isArray(m.given) ? m.given.join('、') : m.given;
 }

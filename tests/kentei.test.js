@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { createRng } from '../src/generators/rng.js';
 import { generateUnitsQuestion } from '../src/generators/units.js';
 import { KENTEI_LEVELS, KYUS, countOf, examLevel, kenteiTitle, modeIdOf, passScore, passes } from '../src/kentei/levels.js';
-import { answerText, buildExam, isRightAnswer, wordPatternsOf, zukeiPatternsOf } from '../src/kentei/exam.js';
+import { answerText, buildExam, isRightAnswer, nextUnanswered, wordPatternsOf, zukeiPatternsOf } from '../src/kentei/exam.js';
 import { MODES, findMode } from '../src/modes.js';
 import { achievement } from '../src/rewards.js';
 
@@ -146,5 +146,24 @@ describe('称号とポイント', () => {
         expect(achievement(findMode('kentei-k8'), 21, 30)).toBe('clear:kentei-k8');
         expect(achievement(findMode('kentei-k8'), 20, 30)).toBe(null);
         expect(achievement(findMode('kentei-mini-k11'), 7, 10)).toBe('clear:kentei-mini-k11');
+    });
+});
+
+describe('好きな順に答える', () => {
+    it('次のまだ答えていない問題は、あとから先にさがし、なければはじめにもどる', () => {
+        const a = [];
+        a[0] = '1';
+        a[2] = 'ア';
+        expect(nextUnanswered(a, 5, 0)).toBe(1);
+        expect(nextUnanswered(a, 5, 1)).toBe(3);
+        expect(nextUnanswered(a, 5, 4)).toBe(1);
+        // 「わからない」(null) は答えたものとして数える
+        a[1] = null;
+        a[3] = ['12'];
+        expect(nextUnanswered(a, 5, 0)).toBe(4);
+        // 今の問題しか残っていないときは、今の問題
+        expect(nextUnanswered(a, 5, 4)).toBe(4);
+        a[4] = 'ウ';
+        expect(nextUnanswered(a, 5, 2)).toBe(-1);
     });
 });

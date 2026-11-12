@@ -6,6 +6,7 @@ import ResultScreen from './components/ResultScreen.vue';
 import LongQuizScreen from './components/LongQuizScreen.vue';
 import LongResultScreen from './components/LongResultScreen.vue';
 import KenteiScreen from './components/KenteiScreen.vue';
+import KenteiList from './components/KenteiList.vue';
 import KenteiResult from './components/KenteiResult.vue';
 import StampsPage from './components/StampsPage.vue';
 import CardsPage from './components/CardsPage.vue';
@@ -102,16 +103,31 @@ function start(modeId) {
         @back="long.quit"
         @open="openPage"
     />
+    <KenteiList
+        v-else-if="kentei.screen.value === 'exam' && kentei.view.value === 'list'"
+        :mode="kentei.mode.value"
+        :questions="kentei.questions.value"
+        :answers="kentei.answers.value"
+        :answered="kentei.answered.value"
+        :left="kentei.left.value"
+        @open="kentei.open"
+        @submit="kentei.submit"
+        @quit="kentei.quit"
+    />
     <KenteiScreen
         v-else-if="kentei.screen.value === 'exam'"
         :mode="kentei.mode.value"
         :question="kentei.question.value"
         :index="kentei.index.value"
         :total="kentei.total.value"
+        :answered="kentei.answered.value"
+        :given="kentei.answers.value[kentei.index.value]"
         :left="kentei.left.value"
         @answer="kentei.answer"
-        @skip="kentei.skip"
-        @quit="kentei.quit"
+        @later="kentei.later"
+        @prev="kentei.prev"
+        @next="kentei.next"
+        @list="kentei.toList"
     />
     <KenteiResult
         v-else-if="kentei.screen.value === 'result'"

@@ -163,3 +163,15 @@ export function answerText(q) {
     if (q.type !== 'fill') return q.answer;
     return q.parts.map(p => (typeof p === 'string' ? p : q.blanks[p.blank])).join('').trim();
 }
+
+/**
+ * 第 from 問のあとで、まだ答えていない問題の番号 (0 から)。あとになければ、はじめにもどってさがす。
+ * 全部答えていれば -1。answers の undefined が、まだ答えていない問題 (null は「わからない」と答えたもの)
+ */
+export function nextUnanswered(answers, total, from) {
+    for (let k = 1; k <= total; k++) {
+        const i = (from + k) % total;
+        if (answers[i] === undefined) return i;
+    }
+    return -1;
+}

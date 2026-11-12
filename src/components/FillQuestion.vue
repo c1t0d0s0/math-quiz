@@ -9,6 +9,8 @@ const props = defineProps({
     maxLength: { type: Number, default: 2 }, // 1つの空欄に入れられる文字の数
     // ふえるたびに「まちがい」を見せて、入れた数を消す (対戦で、正解するまで同じ問題を解くとき)
     wrongSignal: { type: Number, default: 0 },
+    // はじめから空欄に入れておく数 (算数検定もぎ試験で、前に答えた問題を開き直したとき)
+    initial: { type: Array, default: null },
 });
 const emit = defineEmits(['answer']);
 
@@ -28,7 +30,7 @@ const values = ref([]);
 const active = ref(0);
 
 function reset() {
-    values.value = props.question.blanks.map(() => '');
+    values.value = props.question.blanks.map((_, i) => String(props.initial?.[i] ?? ''));
     active.value = 0;
 }
 watch(() => props.question, reset, { immediate: true });
