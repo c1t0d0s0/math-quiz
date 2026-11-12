@@ -5,6 +5,8 @@ import QuizScreen from './components/QuizScreen.vue';
 import ResultScreen from './components/ResultScreen.vue';
 import LongQuizScreen from './components/LongQuizScreen.vue';
 import LongResultScreen from './components/LongResultScreen.vue';
+import KenteiScreen from './components/KenteiScreen.vue';
+import KenteiResult from './components/KenteiResult.vue';
 import StampsPage from './components/StampsPage.vue';
 import CardsPage from './components/CardsPage.vue';
 import { battleAvailable } from './cloud/config.js';
@@ -14,6 +16,7 @@ const BattlePage = defineAsyncComponent(() => import('./components/battle/Battle
 import { useHighScores } from './composables/useHighScores.js';
 import { useQuiz } from './composables/useQuiz.js';
 import { useLongQuiz } from './composables/useLongQuiz.js';
+import { useKentei } from './composables/useKentei.js';
 import { findMode } from './modes.js';
 
 // 開発時だけ使える校正用ページ（?debug=patterns）
@@ -25,6 +28,7 @@ const highScores = useHighScores();
 const quiz = useQuiz(highScores);
 const { screen, mode, score, timeLeft, question, selected, isNewRecord, reward, index, total, elapsed } = quiz;
 const long = useLongQuiz(highScores);
+const kentei = useKentei(highScores);
 
 // スタンプカード (#/stamps)・リスザルカード (#/cards)・対戦 (#/battle、#/battle/12345) のページ。
 // ブラウザの「もどる」でホームにもどれる
@@ -45,6 +49,7 @@ onUnmounted(() => window.removeEventListener('hashchange', onHashChange));
 /** 結果の画面などから、スタンプカードやリスザルカードのページを開く */
 function openPage(name) {
     if (long.screen.value) long.quit();
+    if (kentei.screen.value) kentei.quit();
     quiz.backToStart();
     location.hash = `#/${name}`;
 }
@@ -54,8 +59,11 @@ function goHome() {
 }
 
 function start(modeId) {
-    if (findMode(modeId)?.kind === 'long') {
+    const kind = findMode(modeId)?.kind;
+    if (kind === 'long') {
         long.start(modeId);
+    } else if (kind === 'kentei') {
+        kentei.start(modeId);
     } else {
         quiz.start(modeId);
     }
@@ -92,6 +100,26 @@ function start(modeId) {
         :reward="long.reward.value"
         @restart="long.restart"
         @back="long.quit"
+        @open="openPage"
+    />
+    <KenteiScreen
+        v-else-if="kentei.screen.value === 'exam'"
+        :mode="kentei.mode.value"
+        :question="kentei.question.value"
+        :index="kentei.index.value"
+        :total="kentei.total.value"
+        :left="kentei.left.value"
+        @answer="kentei.answer"
+        @skip="kentei.skip"
+        @quit="kentei.quit"
+    />
+    <KenteiResult
+        v-else-if="kentei.screen.value === 'result'"
+        :mode="kentei.mode.value"
+        :level="kentei.level.value"
+        :result="kentei.result.value"
+        @restart="kentei.restart"
+        @back="kentei.quit"
         @open="openPage"
     />
     <BattlePage

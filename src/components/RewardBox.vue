@@ -7,6 +7,8 @@ import { pt } from '../rewardText.js';
 const props = defineProps({
     reward: { type: Object, default: null }, // src/rewards.js の playReward のもどり値
     isLong: { type: Boolean, default: false },
+    // 「やったね」のポイントの説明。なければ、長文チャレンジ・計算などに合わせた文にする
+    clearLabel: { type: String, default: '' },
 });
 defineEmits(['open']);
 
@@ -22,7 +24,7 @@ const month = computed(() => Number(jstDate().slice(5, 7)));
         <p v-if="reward.weekPoints > 0" class="result-reward">{{ reward.run }}日つづいた！ +{{ pt(WEEK_POINTS) }}</p>
         <p v-if="reward.monthPoints > 0" class="result-reward">{{ month }}月のスタンプが全部そろった！ +{{ pt(MONTH_POINTS) }}</p>
         <p v-if="reward.clearPoints > 0" class="result-reward">
-            {{ isLong ? 'はじめて全問正解！' : `はじめて${CLEAR_SCORE}問以上正解！` }} +{{ pt(reward.clearPoints) }}
+            {{ clearLabel || (isLong ? 'はじめて全問正解！' : `はじめて${CLEAR_SCORE}問以上正解！`) }} +{{ pt(reward.clearPoints) }}
         </p>
         <!-- 今日のスタンプがまだのときは、もらい方を知らせる -->
         <p v-if="reward.run === 0" class="result-stamp-title">あと少し！ 1回のプレイで{{ STAMP_SCORE }}問以上正解すると、今日のスタンプがもらえるよ。</p>

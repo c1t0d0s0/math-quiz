@@ -10,6 +10,7 @@ import { DAILY_COUNT } from '../daily.js';
 import { GRADES, MODES, isVisible, formatTime, resolveGrade } from '../modes.js';
 import { SET_SIZE, QUESTIONS_PER_PROBLEM } from '../long/index.js';
 import { ZUKEI_COUNT } from '../zukei/index.js';
+import { countOf, examLevel, kenteiTitle, passScore } from '../kentei/levels.js';
 
 const props = defineProps({
     highScores: { type: Object, required: true },
@@ -36,11 +37,19 @@ const KINDS = [
     { kind: 'word', title: '文章問題', note: '5分間でできるだけたくさん。いろいろな場面の問題が出ます。' },
     { kind: 'zukei', title: '図形チャレンジ', note: `図を見て考える${ZUKEI_COUNT}問。時間はむせいげんで、答えたあとに解き方が見られます。` },
     { kind: 'long', title: '長文チャレンジ', note: `長い文章を3題、小問は全部で${LONG_TOTAL}問。時間はむせいげんで、答えは10この中からえらびます。` },
+    { kind: 'kentei', title: '算数検定もぎ試験', note: '算数検定と同じ問題数・時間で、11級（1年生）〜6級（6年生）にちょうせん。計算と図形は数字を入れ、文章題と単位は4つからえらびます。答え合わせはさいごにまとめてします。7割以上正解で合格です。' },
+];
+
+// 算数検定もぎ試験は、本番とミニ試験のどちらかのタイルだけを出す
+const kenteiMini = ref(false);
+const KENTEI_CHOICES = [
+    { mini: false, label: '本番' },
+    { mini: true, label: 'ミニ（約半分）' },
 ];
 
 const grade = ref(resolveGrade(new URLSearchParams(location.search).get('grade')));
 const groups = computed(() => KINDS
-    .map(k => ({ ...k, modes: MODES.filter(mode => mode.kind === k.kind && isVisible(mode, grade.value)) }))
+    .map(k => ({ ...k, modes: MODES.filter(mode => mode.kind === k.kind && isVisible(mode, grade.value) && (k.kind !== 'kentei' || mode.mini === kenteiMini.value)) }))
     .filter(k => k.modes.length > 0));
 
 // 長文チャレンジと図形チャレンジは「7/9問（6分12秒）」のように、満点と時間もあわせて見せる
@@ -53,6 +62,19 @@ function longRecord(mode) {
     return `最高: ${best}/${totalOf(mode)}問` + (time ? `（${formatTime(time)}）` : '');
 }
 
+// 算数検定もぎ試験は「最高: 16/20問（合格）」
+const kenteiTotal = mode => countOf(examLevel(mode.level, mode.mini));
+const kenteiPassed = mode => props.highScores[mode.id] >= passScore(kenteiTotal(mode));
+function kenteiRecord(mode) {
+    if (props.account.loading) return '読みこみ中…';
+    const best = props.highScores[mode.id];
+    if (!best) return 'まだ記録なし';
+    return `最高: ${best}/${kenteiTotal(mode)}問` + (kenteiPassed(mode) ? '（合格）' : '');
+}
+
+// 本番の試験で合格した一番上の級。リスザルの下に出す
+const title = computed(() => (props.account.loading ? null : kenteiTitle(id => props.highScores[id])));
+
 // 今日のチャレンジは、今日の分の記録だけを見せる (きのうまでの記録は出さない)
 const playedToday = mode => props.recordDates[mode.id] === today && props.highScores[mode.id] > 0;
 function dailyRecord(mode) {
@@ -63,7 +85,9 @@ function dailyRecord(mode) {
 }
 
 // 花丸は、全問正解したその日だけ出す
+// 算数検定もぎ試験は、合格していれば出す
 const isPerfect = mode => ((mode.kind === 'long' || mode.kind === 'zukei') && props.perfectDates[mode.id] === today)
+    || (mode.kind === 'kentei' && kenteiPassed(mode))
     || (mode.kind === 'daily' && playedToday(mode) && props.highScores[mode.id] === DAILY_COUNT);
 </script>
 
@@ -82,7 +106,11 @@ const isPerfect = mode => ((mode.kind === 'long' || mode.kind === 'zukei') && pr
                 <h1 class="brand">算数チャレンジ</h1>
                 <p class="lead">計算から中学受験の長文問題まで。学年をえらんで、ちょうせんしよう。</p>
             </div>
-            <Monkey />
+            <div class="monkey-box">
+                <Monkey />
+                <!-- 算数検定もぎ試験の本番で合格した一番上の級 -->
+                <p v-if="title" id="monkey-title" class="monkey-title">{{ title }}</p>
+            </div>
         </header>
 
         <!-- 学年の切りかえ -->
@@ -115,6 +143,16 @@ const isPerfect = mode => ((mode.kind === 'long' || mode.kind === 'zukei') && pr
         <section v-for="group in groups" :key="group.kind" :aria-labelledby="`kind-${group.kind}`">
             <h2 :id="`kind-${group.kind}`">{{ group.title }}</h2>
             <p class="section-note">{{ group.note }}</p>
+            <div v-if="group.kind === 'kentei'" class="mode kentei-switch" role="group" aria-label="本番とミニ試験の切りかえ">
+                <button
+                    v-for="c in KENTEI_CHOICES"
+                    :key="c.label"
+                    type="button"
+                    class="mode-option"
+                    :aria-pressed="kenteiMini === c.mini"
+                    @click="kenteiMini = c.mini"
+                ><span class="mode-label">{{ c.label }}</span></button>
+            </div>
             <div class="tiles">
                 <button
                     v-for="mode in group.modes"
@@ -129,6 +167,7 @@ const isPerfect = mode => ((mode.kind === 'long' || mode.kind === 'zukei') && pr
                     <span class="tile-meta">{{ mode.desc }}</span>
                     <span v-if="mode.kind === 'daily'" class="tile-record high-score-tag">{{ dailyRecord(mode) }}</span>
                     <span v-else-if="mode.kind === 'long' || mode.kind === 'zukei'" class="tile-record high-score-tag">{{ longRecord(mode) }}</span>
+                    <span v-else-if="mode.kind === 'kentei'" class="tile-record high-score-tag">{{ kenteiRecord(mode) }}</span>
                     <span v-else-if="account.loading" class="tile-record high-score-tag">読みこみ中…</span>
                     <span v-else class="tile-record high-score-tag">最高: <b>{{ highScores[mode.id] }}</b>問</span>
                     <Hanamaru v-if="isPerfect(mode)" class="hanamaru-small" />

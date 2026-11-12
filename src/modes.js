@@ -1,6 +1,7 @@
 import { defaultRng } from './generators/rng.js';
 import { createCalcGenerator } from './generators/arithmetic.js';
 import { createWordGenerator } from './word/index.js';
+import { KENTEI_LEVELS, countOf, examLevel, modeIdOf, passScore } from './kentei/levels.js';
 
 // 学年タブ
 export const GRADES = [
@@ -32,6 +33,17 @@ export const MODES = [
     { id: 'long-g3', kind: 'long', level: 'g3', name: '長文チャレンジ（3年）', title: '長文チャレンジ', badge: '3年', desc: '長い文章を読んで小問に答える（時間無制限・10択）', grades: ['mid'], timeLimit: 0 },
     { id: 'long-g45', kind: 'long', level: 'g45', name: '長文チャレンジ（4・5年）', title: '長文チャレンジ', badge: '4・5年', desc: '旅人算・割合などの受験型長文（時間無制限・10択）', grades: ['mid', 'high'], timeLimit: 0 },
     { id: 'long-g6', kind: 'long', level: 'g6', name: '長文チャレンジ（6年）', title: '長文チャレンジ', badge: '6年', desc: 'グラフや図を読み取る入試型長文（時間無制限・10択）', grades: ['high'], timeLimit: 0 },
+    // 算数検定もぎ試験。本番 (kentei-k11 …) とミニ試験 (kentei-mini-k11 …)。決まりは src/kentei/levels.js
+    ...[false, true].flatMap(mini => KENTEI_LEVELS.map(({ kyu, grade }) => {
+        const level = examLevel(kyu, mini);
+        const count = countOf(level);
+        return {
+            id: modeIdOf(kyu, mini), kind: 'kentei', level: kyu, mini,
+            name: `算数検定もぎ試験 ${kyu}級${mini ? '（ミニ）' : ''}`, title: `${kyu}級${mini ? ' ミニ' : ''}`, badge: `${grade}年`,
+            desc: `${count}問・${level.minutes}分（${passScore(count)}問 正解で合格）`,
+            grades: [grade <= 2 ? 'low' : grade <= 4 ? 'mid' : 'high'], timeLimit: level.minutes * 60,
+        };
+    })),
 ];
 
 /** 秒を「6分12秒」の形にする */

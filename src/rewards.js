@@ -8,6 +8,8 @@
 //
 // ポイントは合計を保存せず、スタンプと「やったね」の記録から毎回計算する (二重にもらったり取りこぼしたりしない)。
 
+import { passScore } from './kentei/levels.js';
+
 /** 1回のプレイでこの数以上正解すると、その日のスタンプがもらえる */
 export const STAMP_SCORE = 5;
 /** スタンプ1個でもらえるポイント (1日1個) */
@@ -103,6 +105,8 @@ export function achievement(mode, score, total) {
     // 今日のチャレンジは毎日あるので、「やったね」はつけない (スタンプはもらえる)
     if (mode.kind === 'daily') return null;
     if (mode.kind === 'long') return total > 0 && score === total ? `perfect:${mode.id}` : null;
+    // 算数検定もぎ試験は、はじめて合格したとき (ミニ試験も、級ごとに1回)
+    if (mode.kind === 'kentei') return total > 0 && score >= passScore(total) ? `clear:${mode.id}` : null;
     return score >= CLEAR_SCORE ? `clear:${mode.id}` : null;
 }
 

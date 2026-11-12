@@ -332,6 +332,24 @@ button {
     height: auto;
 }
 
+/* リスザルと、その下の算数検定もぎ試験の称号 */
+.monkey-box {
+    flex: none;
+    display: grid;
+    justify-items: center;
+    gap: 0.25rem;
+}
+
+.monkey-title {
+    padding: 0.05rem 0.45rem;
+    background: var(--mark);
+    color: #1c2a4a;
+    font-weight: 700;
+    font-size: 0.75rem;
+    line-height: 1.6;
+    white-space: nowrap;
+}
+
 /* ホーム画面の、スタンプカードとリスザルカードへの入り口 */
 .reward-links {
     display: flex;
@@ -1936,11 +1954,15 @@ button {
         position: relative;
     }
 
-    .hero .monkey {
+    .hero .monkey-box {
         position: absolute;
         top: -0.4rem;
         right: 0;
         width: 6rem;
+    }
+
+    .hero .monkey {
+        width: 100%;
     }
 
     .mode {
@@ -2250,4 +2272,135 @@ button {
     .memo-panel {
         animation: none;
     }
+}
+
+/* ---- 算数検定もぎ試験 ---- */
+.kentei-switch {
+    grid-template-columns: repeat(2, 1fr);
+    margin-bottom: 0.75rem;
+}
+
+.kentei-bar {
+    height: 0.375rem;
+    background: var(--rule-soft);
+}
+
+.kentei-bar span {
+    display: block;
+    height: 100%;
+    background: var(--rule);
+    transition: width 0.2s;
+}
+
+.kentei-skip {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.kentei-score {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.75rem;
+}
+
+.kentei-stamp {
+    padding: 0.2rem 0.9rem;
+    border: 3px solid var(--red);
+    color: var(--red);
+    font-family: var(--hand);
+    font-weight: 600;
+    font-size: 1.75rem;
+    transform: rotate(-6deg);
+}
+
+.kentei-stamp.is-fail {
+    border-color: var(--muted);
+    color: var(--muted);
+    font-size: 1.25rem;
+}
+
+.kentei-message,
+.kentei-timeout {
+    margin-top: 0.5rem;
+    line-height: 1.7;
+}
+
+.kentei-timeout {
+    color: var(--red);
+    font-weight: 700;
+}
+
+.kentei-new-title {
+    display: inline-block;
+    margin-top: 0.75rem;
+    padding: 0.3rem 0.75rem;
+    background: var(--mark);
+    color: #1c2a4a;
+    font-weight: 700;
+}
+
+.kentei-detail {
+    margin-top: 1rem;
+    min-width: 0;
+}
+
+.kentei-detail h3 {
+    margin-top: 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.kentei-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    gap: 1px;
+    margin-top: 0.5rem;
+    padding: 0;
+    list-style: none;
+    background: var(--rule-soft);
+    box-shadow: 0 0 0 1px var(--rule-soft);
+}
+
+.kentei-sections li {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    background: var(--paper);
+}
+
+.kentei-sections li.is-full b {
+    color: var(--red);
+}
+
+.kentei-missed {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0;
+    list-style: none;
+}
+
+.kentei-missed li {
+    display: grid;
+    gap: 0.15rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--paper);
+    box-shadow: 0 0 0 1px var(--rule-soft);
+    overflow-wrap: anywhere;
+}
+
+.kentei-missed-head {
+    color: var(--muted);
+    font-size: 0.8125rem;
+}
+
+.kentei-missed-answer b {
+    color: var(--red);
+}
+
+.kentei-missed-given {
+    color: var(--muted);
+    font-size: 0.875rem;
 }

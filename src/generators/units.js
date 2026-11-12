@@ -46,6 +46,9 @@ function notMultiple(r, min, max, step) {
 
 const tenths = (r, min, max) => notMultiple(r, min * 10, max * 10, 10) / 10;
 
+/** 学年帯の中でも上の学年で習う問題に、その学年の印をつける（算数検定もぎ試験で、学年ごとにしぼるのに使う） */
+const from = (grade, make) => Object.assign(make, { grade });
+
 // ---- 学年帯ごとの問題 ----
 
 const LOW = {
@@ -75,21 +78,21 @@ const MID = {
     length: [
         r => join(r.int(1, 9), r.int(1, 99) * 10, 1000, 'km', 'm'),
         r => split(notMultiple(r, 101, 999, 100) * 10, 1000, 'km', 'm'),
-        r => simple(tenths(r, 1, 5), 'm', 'cm', 100, [10, 1000]),
-        r => simple(tenths(r, 1, 10), 'km', 'm', 1000, [100, 10]),
-        r => simple(notMultiple(r, 11, 49, 10) * 10, 'cm', 'm', 1 / 100, [1 / 10, 1 / 1000]),
-        r => simple(tenths(r, 1, 10), 'cm', 'mm', 10, [100, 1]),
+        from(4, r => simple(tenths(r, 1, 5), 'm', 'cm', 100, [10, 1000])),
+        from(4, r => simple(tenths(r, 1, 10), 'km', 'm', 1000, [100, 10])),
+        from(4, r => simple(notMultiple(r, 11, 49, 10) * 10, 'cm', 'm', 1 / 100, [1 / 10, 1 / 1000])),
+        from(4, r => simple(tenths(r, 1, 10), 'cm', 'mm', 10, [100, 1])),
     ],
     weight: [
         r => join(r.int(1, 5), r.int(1, 99) * 10, 1000, 'kg', 'g'),
         r => split(notMultiple(r, 101, 999, 100) * 10, 1000, 'kg', 'g'),
         r => simple(r.int(2, 9), 't', 'kg', 1000, [100, 10]),
-        r => simple(tenths(r, 1, 10), 'kg', 'g', 1000, [100, 10]),
-        r => simple(r.int(1, 9) * 100, 'g', 'kg', 1 / 1000, [1 / 100, 1 / 10]),
+        from(4, r => simple(tenths(r, 1, 10), 'kg', 'g', 1000, [100, 10])),
+        from(4, r => simple(r.int(1, 9) * 100, 'g', 'kg', 1 / 1000, [1 / 100, 1 / 10])),
     ],
     volume: [
-        r => simple(r.int(1, 9) / 10, 'L', 'dL', 10, [100, 1000]),
-        r => simple(tenths(r, 1, 5), 'L', 'mL', 1000, [100, 10]),
+        from(4, r => simple(r.int(1, 9) / 10, 'L', 'dL', 10, [100, 1000])),
+        from(4, r => simple(tenths(r, 1, 5), 'L', 'mL', 1000, [100, 10])),
         r => join(r.int(1, 4), r.int(1, 19) * 50, 1000, 'L', 'mL'),
     ],
     time: [
@@ -99,12 +102,12 @@ const MID = {
         r => split(notMultiple(r, 13, 59, 12) * 5, 60, '時間', '分'),
     ],
     area: [
-        r => simple(r.int(1, 9), 'm²', 'cm²', 10000, [100, 1000]),
-        r => simple(r.int(2, 9), 'a', 'm²', 100, [10, 1000]),
-        r => simple(r.int(2, 9) * 100, 'm²', 'a', 1 / 100, [1 / 10, 1 / 1000]),
-        r => simple(r.int(2, 9), 'ha', 'a', 100, [10, 1000]),
-        r => simple(r.int(1, 9), 'ha', 'm²', 10000, [1000, 100]),
-        r => simple(r.int(1, 9), 'km²', 'ha', 100, [1000, 10000]),
+        from(4, r => simple(r.int(1, 9), 'm²', 'cm²', 10000, [100, 1000])),
+        from(4, r => simple(r.int(2, 9), 'a', 'm²', 100, [10, 1000])),
+        from(4, r => simple(r.int(2, 9) * 100, 'm²', 'a', 1 / 100, [1 / 10, 1 / 1000])),
+        from(4, r => simple(r.int(2, 9), 'ha', 'a', 100, [10, 1000])),
+        from(4, r => simple(r.int(1, 9), 'ha', 'm²', 10000, [1000, 100])),
+        from(4, r => simple(r.int(1, 9), 'km²', 'ha', 100, [1000, 10000])),
     ],
 };
 
@@ -132,8 +135,8 @@ const HIGH = {
     ],
     weight: [
         r => simple(r.int(1, 99) / 100, 'kg', 'g', 1000, [100, 10000]),
-        r => simple(notMultiple(r, 2, 19, 2) * 500, 'mg', 'g', 1 / 1000, [1 / 100, 1 / 10]),
-        r => simple(r.int(2, 9), 'g', 'mg', 1000, [100, 10]),
+        from(6, r => simple(notMultiple(r, 2, 19, 2) * 500, 'mg', 'g', 1 / 1000, [1 / 100, 1 / 10])),
+        from(6, r => simple(r.int(2, 9), 'g', 'mg', 1000, [100, 10])),
         r => simple(tenths(r, 0, 3), 't', 'kg', 1000, [100, 10]),
         r => simple(r.int(1, 9) * 100, 'kg', 't', 1 / 1000, [1 / 100, 1 / 10]),
     ],
@@ -142,7 +145,7 @@ const HIGH = {
         r => simple(r.int(1, 20) * 500, 'cm³', 'L', 1 / 1000, [1 / 100, 1 / 10]),
         r => simple(r.int(2, 30) / 10, 'm³', 'L', 1000, [100, 10]),
         r => simple(r.int(1, 9) * 50, 'mL', 'cm³', 1, [10, 1000]),
-        r => simple(r.int(2, 9), 'kL', 'L', 1000, [100, 10]),
+        from(6, r => simple(r.int(2, 9), 'kL', 'L', 1000, [100, 10])),
         r => simple(r.int(1, 5), 'm³', 'cm³', 1000000, [1000, 10000, 100000]),
     ],
     area: [
@@ -158,14 +161,15 @@ const HIGH = {
             const m = r.int(0, 1) * 60 + r.pick(DECIMAL_MINUTES);
             return simple(m, '分', '時間', 1 / 60, [1 / 100, 1 / 10]);
         },
-        r => {
+        // 分数で表す時間は6年（速さ）
+        from(6, r => {
             const m = r.pick([5, 10, 20, 25, 35, 40, 50, 55]);
             return {
                 text: `${m}分 = ?時間`,
                 answer: `${frac(m, 60)}時間`,
                 wrong: [frac(m, 100), ...fracWrongs(m, 60)].map(w => `${w}時間`),
             };
-        },
+        }),
         r => decimalTime(r, '分', '秒', 4),
         r => simple(r.int(1, 3) + 0.5, '日', '時間', 24, [10, 12, 60]),
     ],
@@ -173,10 +177,15 @@ const HIGH = {
 
 export const UNIT_TOPICS = { low: LOW, mid: MID, high: HIGH };
 
-/** その学年帯の単位の問題を1問。量の種類（長さ・重さ…）をえらんでから、問題の形をえらぶ */
-export function generateUnitsQuestion(level, r) {
-    const topics = UNIT_TOPICS[level];
-    const make = r.pick(topics[r.pick(Object.keys(topics))]);
+/**
+ * その学年帯の単位の問題を1問。量の種類（長さ・重さ…）をえらんでから、問題の形をえらぶ。
+ * maxGrade をわたすと、その学年までに習う問題だけにする（3年なら、小数や面積の単位は出さない）
+ */
+export function generateUnitsQuestion(level, r, maxGrade = Infinity) {
+    const topics = Object.values(UNIT_TOPICS[level])
+        .map(list => list.filter(make => (make.grade ?? 0) <= maxGrade))
+        .filter(list => list.length > 0);
+    const make = r.pick(r.pick(topics));
     return buildQuestion(make(r), r);
 }
 
