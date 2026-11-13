@@ -27,7 +27,7 @@ const PatternList = defineAsyncComponent(() => import('./components/PatternList.
 
 const highScores = useHighScores();
 const quiz = useQuiz(highScores);
-const { screen, mode, score, timeLeft, question, selected, isNewRecord, reward, index, total, elapsed } = quiz;
+const { screen, mode, score, timeLeft, question, selected, isNewRecord, reward, index, total, elapsed, history } = quiz;
 const long = useLongQuiz(highScores);
 const kentei = useKentei(highScores);
 
@@ -194,6 +194,7 @@ function start(modeId) {
         :reward="reward"
         :total="total"
         :elapsed="elapsed"
+        :history="history"
         @restart="quiz.restart"
         @back="quiz.backToStart"
         @open="openPage"

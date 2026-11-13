@@ -1,9 +1,19 @@
-import { defineTopic, frac, fracWrongs } from '../helpers.js';
+import { defineTopic, frac, fracWrongs, fmtNum } from '../helpers.js';
 import { gcd, lcm } from '../../generators/rng.js';
 import { names, foods } from '../vocab.js';
 
 const H = 'high';
 const one = r => r.pick(names);
+
+// 約分できるときは「6/8 = 3/4」のように約分した形まで書く
+const fracEq = (n, m) => (frac(n, m) === `${n}/${m}` ? `${n}/${m}` : `${n}/${m} = ${frac(n, m)}`);
+
+// a/b ± c/d を、分母を最小公倍数にそろえて計算する式
+function tsuubun(a, b, op, c, d) {
+    const l = lcm(b, d);
+    const [x, y] = [(a * l) / b, (c * l) / d];
+    return `${a}/${b} ${op} ${c}/${d} = ${x}/${l} ${op} ${y}/${l} = ${fracEq(op === '+' ? x + y : x - y, l)}`;
+}
 
 const shousuu = defineTopic('high-shousuu', '小数のかけ算・わり算', [
     (r) => {
@@ -12,6 +22,7 @@ const shousuu = defineTopic('high-shousuu', '小数のかけ算・わり算', [
         return {
             text: `1mの重さが${a / 10}kgの${what}があります。この${what}${b / 10}mの重さは何kgですか。`,
             answer: (a * b) / 100, unit: 'kg', wrong: [(a * b) / 10, (a * b) / 1000, (a + b) / 10],
+            explain: `全体の重さ = 1mの重さ × 長さ。${a / 10} × ${b / 10} = ${fmtNum((a * b) / 100)}（kg）`,
         };
     },
     (r) => {
@@ -20,6 +31,7 @@ const shousuu = defineTopic('high-shousuu', '小数のかけ算・わり算', [
         return {
             text: `${(a * n) / 10}Lの${what}を、${a / 10}Lずつコップに分けます。コップは何個いりますか。`,
             answer: n, unit: '個', wrong: [n * 10, n + 1, n - 1],
+            explain: `コップの数 = 全体の量 ÷ 1個分の量。${(a * n) / 10} ÷ ${a / 10} = ${n}（個）`,
         };
     },
     (r) => {
@@ -27,6 +39,7 @@ const shousuu = defineTopic('high-shousuu', '小数のかけ算・わり算', [
         return {
             text: `長さ${b / 10}mの重さが${(w * b) / 100}kgのロープがあります。このロープ1mの重さは何kgですか。`,
             answer: w / 10, unit: 'kg', wrong: [(w * b * b) / 1000, w / 100, (w + 10) / 10],
+            explain: `1mの重さ = 重さ ÷ 長さ。${(w * b) / 100} ÷ ${b / 10} = ${w / 10}（kg）`,
         };
     },
     (r) => {
@@ -39,6 +52,7 @@ const shousuu = defineTopic('high-shousuu', '小数のかけ算・わり算', [
             text: `${t / 10}mのリボンを${a / 10}mずつ切っていきます。${a / 10}mのリボンは何本とれて、何mあまりますか。`,
             answer: fmt(q, m / 10),
             wrong: [fmt(q, m), fmt(q + 1, m / 10), fmt(q - 1, (m + a) / 10), fmt(q, (m + 1) / 10)],
+            explain: `商は整数まで求め、あまりの小数点は、わられる数の小数点にそろえます。${t / 10} ÷ ${a / 10} = ${q} あまり ${m / 10} なので、${fmt(q, m / 10)}`,
         };
     },
     (r) => {
@@ -47,6 +61,7 @@ const shousuu = defineTopic('high-shousuu', '小数のかけ算・わり算', [
         return {
             text: `${c1}のテープは${a}mです。${c2}のテープの長さは、${c1}のテープの${k / 10}倍です。${c2}のテープは何mですか。`,
             answer: (a * k) / 10, unit: 'm', wrong: [(a * k) / 100, a + k / 10, a * k],
+            explain: `${c2}のテープの長さ = ${c1}のテープの長さ × ${k / 10}。${a} × ${k / 10} = ${fmtNum((a * k) / 10)}（m）`,
         };
     },
 ]);
@@ -78,6 +93,7 @@ const bunsuu = defineTopic('high-bunsuu', '分数の計算', [
             text: `${x}が${a}/${b}L、${y}が${c}/${d}Lあります。合わせて何Lですか。`,
             answer: `${frac(n, m)}L`,
             wrong: [frac(a + c, b + d), ...fracWrongs(n, m)].map(f => `${f}L`),
+            explain: `分母をそろえて（通分して）たします。${tsuubun(a, b, '+', c, d)}（L）`,
         };
     },
     (r) => {
@@ -91,6 +107,7 @@ const bunsuu = defineTopic('high-bunsuu', '分数の計算', [
             text: `${a}/${b}mのリボンのうち、${c}/${d}mを使いました。残りは何mですか。`,
             answer: `${frac(n, m)}m`,
             wrong: [frac(a + c, b + d), ...fracWrongs(n, m)].map(x => `${x}m`),
+            explain: `分母をそろえて（通分して）ひきます。${tsuubun(a, b, '−', c, d)}（m）`,
         };
     },
     (r) => {
@@ -101,6 +118,7 @@ const bunsuu = defineTopic('high-bunsuu', '分数の計算', [
             text: `1dLで${a}/${b}m²のかべをぬれるペンキがあります。このペンキ${c}/${d}dLでは、何m²のかべをぬれますか。`,
             answer: `${frac(n, m)}m²`,
             wrong: [frac(a * d, b * c), frac(a + c, b + d), ...fracWrongs(n, m)].map(x => `${x}m²`),
+            explain: `ぬれる面積 = 1dLでぬれる面積 × ペンキの量。${a}/${b} × ${c}/${d} = ${fracEq(n, m)}（m²）`,
         };
     },
     (r) => {
@@ -111,6 +129,7 @@ const bunsuu = defineTopic('high-bunsuu', '分数の計算', [
             text: `${a}/${b}m²のかべをぬるのに、ペンキを${c}/${d}dL使いました。このペンキ1dLでは、何m²のかべをぬれますか。`,
             answer: `${frac(n, m)}m²`,
             wrong: [frac(a * c, b * d), frac(b * c, a * d), ...fracWrongs(n, m)].map(x => `${x}m²`),
+            explain: `1dLでぬれる面積 = ぬった面積 ÷ ペンキの量。わる数の分母と分子を入れかえてかけます。${a}/${b} ÷ ${c}/${d} = ${a}/${b} × ${d}/${c} = ${fracEq(n, m)}（m²）`,
         };
     },
     (r) => {
@@ -120,6 +139,7 @@ const bunsuu = defineTopic('high-bunsuu', '分数の計算', [
             text: `時速${v}kmで${m}分間${how}と、何km進みますか。`,
             answer: `${frac(v * m, 60)}km`,
             wrong: [frac(v * m, 100), frac(v * 60, m), ...fracWrongs(v * m, 60)].map(x => `${x}km`),
+            explain: `道のり = 速さ × 時間。${m}分は ${m}/60 時間なので、${v} × ${m}/60 = ${fracEq(v * m, 60)}（km）`,
         };
     },
     (r) => {
@@ -131,6 +151,7 @@ const bunsuu = defineTopic('high-bunsuu', '分数の計算', [
             text: `${one(r)}さんはある本を、きのうは全体の${a}/${b}、今日は全体の${c}/${d}読みました。残りは全体のどれだけですか。`,
             answer: frac(m - n, m),
             wrong: [frac(n, m), frac(a + c, b + d), ...fracWrongs(m - n, m)],
+            explain: `読んだのは全体の ${tsuubun(a, b, '+', c, d)}。全体を1とすると、残りは 1 − ${frac(n, m)} = ${frac(m - n, m)}`,
         };
     },
 ]);
@@ -147,6 +168,7 @@ const heikin = defineTopic('high-heikin', '平均', [
         return {
             text: `${one(r)}さんの${subject}のテスト4回の点数は、${s.join('点、')}点でした。平均は何点ですか。`,
             answer: avg, unit: '点', wrong: [(Math.max(...s) + Math.min(...s)) / 2, avg + 2],
+            explain: `平均 = 合計 ÷ 回数。(${s.join(' + ')}) ÷ 4 = ${avg * 4} ÷ 4 = ${avg}（点）`,
         };
     },
     (r) => {
@@ -155,6 +177,7 @@ const heikin = defineTopic('high-heikin', '平均', [
         return {
             text: `${what}${n}個の重さの平均は${avg}gでした。${n}個全部の重さは何gですか。`,
             answer: n * avg, unit: 'g', wrong: [n + avg, n * avg + avg, n * avg - 10],
+            explain: `合計 = 平均 × 個数。${avg} × ${n} = ${n * avg}（g）`,
         };
     },
     (r) => {
@@ -163,6 +186,7 @@ const heikin = defineTopic('high-heikin', '平均', [
         return {
             text: `${one(r)}さんの${n}回のテストの平均点は${avg}点でした。次のテストで何点とれば、${n + 1}回の平均が${target}点になりますか。`,
             answer: target * (n + 1) - avg * n, unit: '点', wrong: [target, avg + diff * n, target + 1],
+            explain: `${n + 1}回の合計点は ${target} × ${n + 1} = ${target * (n + 1)}（点）、${n}回の合計点は ${avg} × ${n} = ${avg * n}（点）。次のテストの点は ${target * (n + 1)} − ${avg * n} = ${target * (n + 1) - avg * n}（点）`,
         };
     },
     (r) => {
@@ -177,6 +201,7 @@ const heikin = defineTopic('high-heikin', '平均', [
         return {
             text: `${one(r)}さんが5日間に読んだ本のページ数は、${days.join('ページ、')}ページでした。1日平均何ページ読みましたか。`,
             answer: avg, unit: 'ページ', wrong: [(avg * 5) / 4, avg + 1, avg - 1],
+            explain: `0ページの日も1日として数えます。平均 = 合計 ÷ 日数。(${days.join(' + ')}) ÷ 5 = ${avg * 5} ÷ 5 = ${avg}（ページ）`,
         };
     },
     (r) => {
@@ -189,6 +214,7 @@ const heikin = defineTopic('high-heikin', '平均', [
         return {
             text: `男子${m}人の平均体重は${a}kg、女子${f}人の平均体重は${b}kgです。全員の平均体重は何kgですか。`,
             answer: (m * a + f * b) / (m + f), unit: 'kg', wrong: [(a + b) / 2, a, b],
+            explain: `全員の体重の合計は ${a} × ${m} + ${b} × ${f} = ${m * a + f * b}（kg）、人数は ${m} + ${f} = ${m + f}（人）。${m * a + f * b} ÷ ${m + f} = ${(m * a + f * b) / (m + f)}（kg）`,
         };
     },
 ]);
@@ -201,6 +227,7 @@ const baisuu = defineTopic('high-baisuu', '倍数と約数', [
         return {
             text: `${a}分おきに出る電車と、${b}分おきに出るバスがあります。午前8時に同時に出発しました。次に同時に出発するのは何分後ですか。`,
             answer: lcm(a, b), unit: '分後', wrong: [a * b, a + b, gcd(a, b)],
+            explain: `次に同時に出発するのは、${a} と ${b} の最小公倍数の分だけたったときです。${a} と ${b} の最小公倍数は ${lcm(a, b)} なので、${lcm(a, b)}分後`,
         };
     },
     (r) => {
@@ -210,6 +237,7 @@ const baisuu = defineTopic('high-baisuu', '倍数と約数', [
         return {
             text: `${f1.name}${g * x}${f1.unit}と${f2.name}${g * y}${f2.unit}を、それぞれ同じ数ずつ、あまりが出ないように、できるだけ多くの子どもに分けます。何人に分けられますか。`,
             answer: g, unit: '人', wrong: [g * (y - x), g / 2, g * x, g + 1],
+            explain: `人数は ${g * x} と ${g * y} の公約数で、できるだけ多くするので最大公約数です。${g * x} と ${g * y} の最大公約数は ${g} なので、${g}人`,
         };
     },
     (r) => {
@@ -218,6 +246,7 @@ const baisuu = defineTopic('high-baisuu', '倍数と約数', [
         return {
             text: `たて${a}cm、横${b}cmの長方形のタイルを同じ向きにすきまなくならべて、できるだけ小さい正方形を作ります。タイルは何枚いりますか。`,
             answer: (side / a) * (side / b), unit: '枚', wrong: [side, a * b, side / a + side / b],
+            explain: `正方形の1辺は ${a} と ${b} の最小公倍数で ${side}cm。たてに ${side} ÷ ${a} = ${side / a}（枚）、横に ${side} ÷ ${b} = ${side / b}（枚）ならぶので、${side / a} × ${side / b} = ${(side / a) * (side / b)}（枚）`,
         };
     },
     (r) => {
@@ -226,6 +255,7 @@ const baisuu = defineTopic('high-baisuu', '倍数と約数', [
         return {
             text: `1から${n}までの整数のうち、${k}の倍数は何個ありますか。`,
             answer: q, unit: '個', wrong: [q + 1, q - 1, n - k],
+            explain: `${n} ÷ ${k} の商が、${k}の倍数の個数です。${n} ÷ ${k} = ${n % k === 0 ? q : `${q} あまり ${n % k}`} なので、${q}個`,
         };
     },
 ]);
@@ -241,6 +271,7 @@ const baai = defineTopic('high-baai', '場合の数', [
         return {
             text: `${scene}は全部で何通りありますか。`,
             answer: factorial(n), unit: '通り', wrong: [n * n, n * (n - 1), factorial(n) / 2, n],
+            explain: `1番目は${n}通り、2番目は残りの${n - 1}通り、…と考えます。${Array.from({ length: n }, (_, i) => n - i).join(' × ')} = ${factorial(n)}（通り）`,
         };
     },
     (r) => {
@@ -249,6 +280,7 @@ const baai = defineTopic('high-baai', '場合の数', [
         return {
             text: `${n}チームで${sport}の試合をします。どのチームとも1回ずつ当たるようにすると、試合は全部で何試合になりますか。`,
             answer: (n * (n - 1)) / 2, unit: '試合', wrong: [n * (n - 1), n * n, n],
+            explain: `どのチームも ${n - 1} チームと当たります。${n} × ${n - 1} では同じ試合を2回ずつ数えているので、${n} × ${n - 1} ÷ 2 = ${(n * (n - 1)) / 2}（試合）`,
         };
     },
     (r) => {
@@ -260,6 +292,7 @@ const baai = defineTopic('high-baai', '場合の数', [
             answer: zero ? (n - 1) * (n - 1) : n * (n - 1),
             unit: '通り',
             wrong: zero ? [n * (n - 1), n * n] : [n * n, (n * (n - 1)) / 2, n * 2],
+            explain: `${zero ? `十の位には0を使えないので${n - 1}通り、一の位は残りの${n - 1}通り。${n - 1} × ${n - 1} = ${(n - 1) * (n - 1)}（通り）` : `十の位は${n}通り、一の位は残りの${n - 1}通り。${n} × ${n - 1} = ${n * (n - 1)}（通り）`}`,
         };
     },
 ]);

@@ -12,6 +12,7 @@ const gappei = defineTopic('low-gappei', 'あわせていくつ', [
         return {
             text: `${p}さんは ${I.name}を ${a}${I.unit}、${q}さんは ${b}${I.unit} もっています。あわせて ${I.q}ですか。`,
             answer: a + b, unit: I.unit, wrong: [Math.abs(a - b), a + b + 1],
+            explain: `あわせた かずなので たしざん。${a} + ${b} = ${a + b}（${I.unit}）`,
         };
     },
     (r) => {
@@ -20,6 +21,7 @@ const gappei = defineTopic('low-gappei', 'あわせていくつ', [
         return {
             text: `${c1}の はなが ${a}本、${c2}の はなが ${b}本 さいています。はなは ぜんぶで なん本 さいていますか。`,
             answer: a + b, unit: '本', wrong: [Math.abs(a - b), a + b - 1],
+            explain: `ぜんぶの かずなので たしざん。${a} + ${b} = ${a + b}（本）`,
         };
     },
     (r) => {
@@ -28,6 +30,7 @@ const gappei = defineTopic('low-gappei', 'あわせていくつ', [
         return {
             text: `${place}に おとこのこが ${a}人、おんなのこが ${b}人 います。こどもは みんなで なん人 いますか。`,
             answer: a + b, unit: '人', wrong: [Math.abs(a - b), a + b + 2],
+            explain: `みんなの かずなので たしざん。${a} + ${b} = ${a + b}（人）`,
         };
     },
     (r) => {
@@ -36,6 +39,7 @@ const gappei = defineTopic('low-gappei', 'あわせていくつ', [
         return {
             text: `はこの なかに ${I.name}が ${a}${I.unit}、ふくろの なかに ${b}${I.unit} はいっています。${I.name}は ぜんぶで ${I.q} ありますか。`,
             answer: a + b, unit: I.unit, wrong: [a + b - 10, a + b + 10, Math.abs(a - b)],
+            explain: `ぜんぶの かずなので たしざん。${a} + ${b} = ${a + b}（${I.unit}）`,
         };
     },
 ]);
@@ -47,6 +51,7 @@ const zouka = defineTopic('low-zouka', 'ふえるといくつ', [
         return {
             text: `${A.name}が ${a}ひき います。そこへ ${b}ひき やって きました。${A.name}は ぜんぶで なんびきに なりましたか。`,
             answer: a + b, unit: 'ひき', wrong: [Math.abs(a - b), a + b + 1],
+            explain: `やって きて ふえたので たしざん。${a} + ${b} = ${a + b}（ひき）`,
         };
     },
     (r) => {
@@ -57,6 +62,7 @@ const zouka = defineTopic('low-zouka', 'ふえるといくつ', [
         return {
             text: `${p}さんは ${I.name}を ${a}${I.unit} もっています。${from}から ${b}${I.unit} もらいました。${I.name}は ${I.q}に なりましたか。`,
             answer: a + b, unit: I.unit, wrong: [a - b, a + b - 1],
+            explain: `もらって ふえたので たしざん。${a} + ${b} = ${a + b}（${I.unit}）`,
         };
     },
     (r) => {
@@ -64,6 +70,7 @@ const zouka = defineTopic('low-zouka', 'ふえるといくつ', [
         return {
             text: `バスに ${a}人 のっています。つぎの バスていで ${b}人 のって きました。バスに のっているのは なん人に なりましたか。`,
             answer: a + b, unit: '人', wrong: [a - b, a + b + 1],
+            explain: `のって きて ふえたので たしざん。${a} + ${b} = ${a + b}（人）`,
         };
     },
     (r) => {
@@ -72,6 +79,7 @@ const zouka = defineTopic('low-zouka', 'ふえるといくつ', [
         return {
             text: `${p}さんは きのうまでに 本を ${a}ページ よみました。きょう ${b}ページ よみました。ぜんぶで なんページ よみましたか。`,
             answer: a + b, unit: 'ページ', wrong: [a + b - 10, a + b + 10, a - b],
+            explain: `きのうまでと きょうの ぶんを あわせるので たしざん。${a} + ${b} = ${a + b}（ページ）`,
         };
     },
 ]);
@@ -84,6 +92,7 @@ const kyuzan = defineTopic('low-kyuzan', 'のこりはいくつ', [
         return {
             text: `${I.name}が ${a}${I.unit} あります。${b}${I.unit} たべました。のこりは ${I.q}ですか。`,
             answer: a - b, unit: I.unit, wrong: [a + b, a - b + 1],
+            explain: `たべた のこりは ひきざん。${a} − ${b} = ${a - b}（${I.unit}）`,
         };
     },
     (r) => {
@@ -92,6 +101,7 @@ const kyuzan = defineTopic('low-kyuzan', 'のこりはいくつ', [
         return {
             text: `こうえんで こどもが ${a}人 あそんでいます。${b}人 かえりました。こうえんに いるのは なん人ですか。`,
             answer: a - b, unit: '人', wrong: [a + b, a - b - 1],
+            explain: `かえった のこりは ひきざん。${a} − ${b} = ${a - b}（人）`,
         };
     },
     (r) => {
@@ -101,6 +111,7 @@ const kyuzan = defineTopic('low-kyuzan', 'のこりはいくつ', [
         return {
             text: `${p}さんは おりがみを ${a}まい もっています。${q}さんに ${b}まい あげました。${p}さんの おりがみは なんまいに なりましたか。`,
             answer: a - b, unit: 'まい', wrong: [a + b, a - b + 10, a - b - 10],
+            explain: `あげた のこりは ひきざん。${a} − ${b} = ${a - b}（まい）`,
         };
     },
     (r) => {
@@ -109,6 +120,7 @@ const kyuzan = defineTopic('low-kyuzan', 'のこりはいくつ', [
         return {
             text: `ふうせんが ${a}こ あります。${b}こ われて しまいました。われていない ふうせんは なんこですか。`,
             answer: a - b, unit: 'こ', wrong: [a + b, b],
+            explain: `われた ぶんを ひくので ひきざん。${a} − ${b} = ${a - b}（こ）`,
         };
     },
 ]);
@@ -122,6 +134,7 @@ const kyusa = defineTopic('low-kyusa', 'ちがいはいくつ', [
         return {
             text: `${p}さんは ${I.name}を ${a}${I.unit}、${q}さんは ${b}${I.unit} もっています。${p}さんの ほうが ${I.q} おおいですか。`,
             answer: a - b, unit: I.unit, wrong: [a + b, a - b + 1],
+            explain: `ちがいは ひきざん。おおい ほうから すくない ほうを ひきます。${a} − ${b} = ${a - b}（${I.unit}）`,
         };
     },
     (r) => {
@@ -135,6 +148,7 @@ const kyusa = defineTopic('low-kyusa', 'ちがいはいくつ', [
             text: `${A1.name}が ${a}ひき、${A2.name}が ${b}ひき います。どちらが なんびき おおいですか。`,
             answer: `${more}が ${d}ひき`,
             wrong: [`${less}が ${d}ひき`, `${more}が ${d + 1}ひき`, `${less}が ${d + 1}ひき`],
+            explain: `${more}の ほうが おおいです。ちがいは ひきざん。${Math.max(a, b)} − ${Math.min(a, b)} = ${d}（ひき）`,
         };
     },
     (r) => {
@@ -143,6 +157,7 @@ const kyusa = defineTopic('low-kyusa', 'ちがいはいくつ', [
         return {
             text: `いすが ${a}こ あります。こどもが ${b}人 います。ひとりずつ すわると、いすは なんこ あまりますか。`,
             answer: a - b, unit: 'こ', wrong: [a + b, a - b + 2],
+            explain: `いすの かずから こどもの かずを ひきます。${a} − ${b} = ${a - b}（こ）`,
         };
     },
     (r) => {
@@ -153,6 +168,7 @@ const kyusa = defineTopic('low-kyusa', 'ちがいはいくつ', [
         return {
             text: `${p}さんは なわとびで ${a}かい、${q}さんは ${b}かい とびました。ふたりの とんだ かずの ちがいは なんかいですか。`,
             answer: Math.abs(a - b), unit: 'かい', wrong: [a + b, Math.abs(a - b) + 10],
+            explain: `ちがいは ひきざん。おおい ほうから すくない ほうを ひきます。${Math.max(a, b)} − ${Math.min(a, b)} = ${Math.abs(a - b)}（かい）`,
         };
     },
 ]);
@@ -164,6 +180,7 @@ const kyuho = defineTopic('low-kyuho', 'ぜんぶとぶぶん', [
         return {
             text: `こどもが ${t}人 います。そのうち おとこのこは ${a}人です。おんなのこは なん人ですか。`,
             answer: t - a, unit: '人', wrong: [t + a, t - a + 1],
+            explain: `みんなから おとこのこを ひくと おんなのこの かず。${t} − ${a} = ${t - a}（人）`,
         };
     },
     (r) => {
@@ -173,6 +190,7 @@ const kyuho = defineTopic('low-kyuho', 'ぜんぶとぶぶん', [
         return {
             text: `${c1}と ${c2}の はなが あわせて ${t}本 さいています。${c1}の はなは ${a}本です。${c2}の はなは なん本ですか。`,
             answer: t - a, unit: '本', wrong: [t + a, a],
+            explain: `ぜんぶから ${c1}の はなを ひきます。${t} − ${a} = ${t - a}（本）`,
         };
     },
     (r) => {
@@ -182,6 +200,7 @@ const kyuho = defineTopic('low-kyuho', 'ぜんぶとぶぶん', [
         return {
             text: `${I.name}が ${t}${I.unit} あります。そのうち ${a}${I.unit}は はこに はいっています。はこに はいっていない ${I.name}は ${I.q}ですか。`,
             answer: t - a, unit: I.unit, wrong: [t + a, t - a + 10, t - a - 1],
+            explain: `ぜんぶから はこに はいっている ぶんを ひきます。${t} − ${a} = ${t - a}（${I.unit}）`,
         };
     },
 ]);
@@ -193,6 +212,7 @@ const junjo = defineTopic('low-junjo', 'なんばんめ', [
         return {
             text: `こどもが 1れつに ならんでいます。${p}さんは まえから ${a}ばんめです。${p}さんの うしろに ${b}人 います。みんなで なん人 ならんでいますか。`,
             answer: a + b, unit: '人', wrong: [a + b + 1, a + b - 1],
+            explain: `まえから ${a}ばんめなので、${p}さんまでで ${a}人。うしろの ${b}人を たします。${a} + ${b} = ${a + b}（人）`,
         };
     },
     (r) => {
@@ -201,6 +221,7 @@ const junjo = defineTopic('low-junjo', 'なんばんめ', [
         return {
             text: `こどもが 1れつに ならんでいます。${p}さんの まえに ${a}人、うしろに ${b}人 います。みんなで なん人 ならんでいますか。`,
             answer: a + b + 1, unit: '人', wrong: [a + b, a + b + 2],
+            explain: `まえの ${a}人と うしろの ${b}人に、${p}さん 1人を たします。${a} + ${b} + 1 = ${a + b + 1}（人）`,
         };
     },
     (r) => {
@@ -210,6 +231,7 @@ const junjo = defineTopic('low-junjo', 'なんばんめ', [
         return {
             text: `${t}人が 1れつに ならんでいます。${p}さんは まえから ${a}ばんめです。${p}さんは うしろから なんばんめですか。`,
             answer: t - a + 1, unit: 'ばんめ', wrong: [t - a, t - a + 2],
+            explain: `${p}さんの うしろには ${t} − ${a} = ${t - a}（人）。${p}さんの ぶん 1を たして、${t - a} + 1 = ${t - a + 1}（ばんめ）`,
         };
     },
     (r) => {
@@ -219,6 +241,7 @@ const junjo = defineTopic('low-junjo', 'なんばんめ', [
         return {
             text: `${p}さんは まえから ${a}ばんめ、${q}さんは まえから ${b}ばんめに ならんでいます。ふたりの あいだには なん人 いますか。`,
             answer: b - a - 1, unit: '人', wrong: [b - a, b - a + 1],
+            explain: `あいだに いるのは ${a + 1}ばんめから ${b - 1}ばんめまで。${b} − ${a} − 1 = ${b - a - 1}（人）`,
         };
     },
 ]);
@@ -231,6 +254,7 @@ const yori = defineTopic('low-yori', 'おおい・すくない', [
         return {
             text: `${p}さんは ${I.name}を ${a}${I.unit} もっています。${q}さんは ${p}さんより ${d}${I.unit} おおく もっています。${q}さんは ${I.q} もっていますか。`,
             answer: a + d, unit: I.unit, wrong: [a - d, a + d + 1],
+            explain: `${p}さんより おおいので たしざん。${a} + ${d} = ${a + d}（${I.unit}）`,
         };
     },
     (r) => {
@@ -240,6 +264,7 @@ const yori = defineTopic('low-yori', 'おおい・すくない', [
         return {
             text: `${p}さんは さかなを ${a}ひき つりました。${q}さんは ${p}さんより ${d}ひき すくなかったそうです。${q}さんは なんびき つりましたか。`,
             answer: a - d, unit: 'ひき', wrong: [a + d, a - d - 1],
+            explain: `${p}さんより すくないので ひきざん。${a} − ${d} = ${a - d}（ひき）`,
         };
     },
     (r) => {
@@ -250,6 +275,7 @@ const yori = defineTopic('low-yori', 'おおい・すくない', [
         return {
             text: `${p}さんは ${I.name}を ${a}${I.unit} もっています。これは ${q}さんより ${d}${I.unit} おおい かずです。${q}さんは ${I.q} もっていますか。`,
             answer: a - d, unit: I.unit, wrong: [a + d, a - d + 1],
+            explain: `${p}さんの ほうが ${d}${I.unit} おおいので、${q}さんは それより すくない。ひきざん。${a} − ${d} = ${a - d}（${I.unit}）`,
         };
     },
     (r) => {
@@ -258,6 +284,7 @@ const yori = defineTopic('low-yori', 'おおい・すくない', [
         return {
             text: `${p}さんは どんぐりを ${a}こ ひろいました。これは ${q}さんより ${d}こ すくない かずです。${q}さんは なんこ ひろいましたか。`,
             answer: a + d, unit: 'こ', wrong: [a - d, a + d - 1],
+            explain: `${p}さんの ほうが ${d}こ すくないので、${q}さんは それより おおい。たしざん。${a} + ${d} = ${a + d}（こ）`,
         };
     },
 ]);
@@ -269,6 +296,7 @@ const gyaku = defineTopic('low-gyaku', 'はじめはいくつ', [
         return {
             text: `${I.name}が いくつか あります。${b}${I.unit} もらったので、ぜんぶで ${x + b}${I.unit}に なりました。はじめに ${I.q} ありましたか。`,
             answer: x, unit: I.unit, wrong: [x + b + b, x + 1],
+            explain: `ぜんぶから もらった ぶんを ひくと、はじめの かず。${x + b} − ${b} = ${x}（${I.unit}）`,
         };
     },
     (r) => {
@@ -277,6 +305,7 @@ const gyaku = defineTopic('low-gyaku', 'はじめはいくつ', [
         return {
             text: `${I.name}が いくつか ありました。${b}${I.unit} つかったので、のこりが ${c}${I.unit}に なりました。はじめに ${I.q} ありましたか。`,
             answer: b + c, unit: I.unit, wrong: [Math.abs(c - b), b + c + 1],
+            explain: `のこりに つかった ぶんを たすと、はじめの かず。${c} + ${b} = ${b + c}（${I.unit}）`,
         };
     },
     (r) => {
@@ -284,6 +313,7 @@ const gyaku = defineTopic('low-gyaku', 'はじめはいくつ', [
         return {
             text: `バスに ${a}人 のっていました。バスていで なん人か のって きたので、${a + x}人に なりました。のって きたのは なん人ですか。`,
             answer: x, unit: '人', wrong: [a + x + a, x + 2],
+            explain: `ふえた ぶんを もとめるので ひきざん。${a + x} − ${a} = ${x}（人）`,
         };
     },
     (r) => {
@@ -293,6 +323,7 @@ const gyaku = defineTopic('low-gyaku', 'はじめはいくつ', [
         return {
             text: `${I.name}が ${a}${I.unit} ありました。いくつか たべたので、のこりが ${a - x}${I.unit}に なりました。たべたのは ${I.q}ですか。`,
             answer: x, unit: I.unit, wrong: [a + a - x, x + 1],
+            explain: `はじめの かずから のこりを ひくと、たべた かず。${a} − ${a - x} = ${x}（${I.unit}）`,
         };
     },
     (r) => {
@@ -302,6 +333,7 @@ const gyaku = defineTopic('low-gyaku', 'はじめはいくつ', [
         return {
             text: `${p}さんは ${t}ページの 本を よんでいます。いま ${a}ページまで よみました。あと なんページ のこっていますか。`,
             answer: t - a, unit: 'ページ', wrong: [t + a, t - a + 10, t - a - 10],
+            explain: `のこりは ひきざん。${t} − ${a} = ${t - a}（ページ）`,
         };
     },
 ]);
@@ -314,6 +346,7 @@ const mittsu = defineTopic('low-mittsu', '3つのかずのけいさん', [
         return {
             text: `バスに ${a}人 のっています。はじめの バスていで ${b}人 おりて、つぎの バスていで ${c}人 のりました。いま バスに なん人 のっていますか。`,
             answer: a - b + c, unit: '人', wrong: [a - b - c, a + b + c, a + b - c],
+            explain: `おりると ひきざん、のると たしざん。${a} − ${b} + ${c} = ${a - b} + ${c} = ${a - b + c}（人）`,
         };
     },
     (r) => {
@@ -324,6 +357,7 @@ const mittsu = defineTopic('low-mittsu', '3つのかずのけいさん', [
         return {
             text: `${I.name}が ${a}${I.unit} あります。あさに ${b}${I.unit}、ひるに ${c}${I.unit} たべました。のこりは ${I.q}ですか。`,
             answer: a - b - c, unit: I.unit, wrong: [a - b + c, a - b],
+            explain: `たべた ぶんを じゅんに ひきます。${a} − ${b} − ${c} = ${a - b} − ${c} = ${a - b - c}（${I.unit}）`,
         };
     },
     (r) => {
@@ -332,6 +366,7 @@ const mittsu = defineTopic('low-mittsu', '3つのかずのけいさん', [
         return {
             text: `${c1}の はなが ${a}本、${c2}の はなが ${b}本、${c3}の はなが ${c}本 さいています。はなは ぜんぶで なん本 さいていますか。`,
             answer: a + b + c, unit: '本', wrong: [a + b, b + c],
+            explain: `3つの かずを たします。${a} + ${b} + ${c} = ${a + b} + ${c} = ${a + b + c}（本）`,
         };
     },
     (r) => {
@@ -342,6 +377,7 @@ const mittsu = defineTopic('low-mittsu', '3つのかずのけいさん', [
         return {
             text: `${p}さんは シールを ${a}まい もっていました。${b}まい もらって、そのあと ${c}まい ともだちに あげました。いま なんまい もっていますか。`,
             answer: a + b - c, unit: 'まい', wrong: [a - b + c, a + b + c, a - b - c],
+            explain: `もらうと たしざん、あげると ひきざん。${a} + ${b} − ${c} = ${a + b} − ${c} = ${a + b - c}（まい）`,
         };
     },
 ]);

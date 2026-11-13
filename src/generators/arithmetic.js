@@ -1,6 +1,62 @@
 import { gcd, lcm } from './rng.js';
 import { generateUnitsQuestion, generateUnitsLow, generateUnitsMid, generateUnitsHigh } from './units.js';
 
+// ---- 解き方の文 (今日のチャレンジの結果で、まちがえた問題に出す)。1・2年の問題はひらがなで書く ----
+
+/** たし算: くり上がりは、10 のまとまりを作る (さくらんぼ計算) */
+export function additionExplain(a, b) {
+    const sum = a + b;
+    if ((a % 10) + (b % 10) <= 10) return `${a} + ${b} = ${sum}`;
+    if (a >= 10 && b >= 10) {
+        return `じゅうの くらいと いちの くらいに わけて、${a - (a % 10)} + ${b - (b % 10)} = ${a - (a % 10) + b - (b % 10)}、${a % 10} + ${b % 10} = ${(a % 10) + (b % 10)}。あわせて ${sum}`;
+    }
+    // 小さいほうを分けて、大きいほうを 10 (20) にする
+    const [big, small] = a >= b ? [a, b] : [b, a];
+    const need = 10 - (big % 10);
+    return `${big} + ${small} は、${small} を ${need} と ${small - need} に わけて、${big} + ${need} = ${big + need}、${big + need} + ${small - need} = ${sum}`;
+}
+
+/** ひき算: くり下がりは、10 からひく */
+export function subtractionExplain(a, b) {
+    const diff = a - b;
+    if (a < 10 || b > 9 || a % 10 >= b) return `${a} - ${b} = ${diff}`;
+    const ones = a % 10;
+    const tens = a - ones;
+    if (ones === 0) return `${a} を ${tens - 10} と 10 に わけて、10 - ${b} = ${10 - b}、${tens - 10} + ${10 - b} = ${diff}`;
+    return `${a} を ${tens} と ${ones} に わけて、${tens} - ${b} = ${tens - b}、${tens - b} + ${ones} = ${diff}`;
+}
+
+/** かけ算: 1けたどうしは九九、2けたは位ごとに分けてかける */
+export function multiplicationExplain(a, b) {
+    const p = a * b;
+    if (a < 10 && b < 10) return `${a}のだんの九九で、${a} × ${b} = ${p}`;
+    if (a === 1 || b === 1) return `1 をかけても、数はかわらない。${a} × ${b} = ${p}`;
+    // 2けたのほう (どちらも2けたなら、あとの数) を、十の位と一の位に分ける
+    const [x, y] = b >= 10 ? [a, b] : [b, a];
+    const tens = y - (y % 10);
+    const ones = y % 10;
+    if (ones === 0) return `${x} × ${tens / 10} = ${x * tens / 10} の 10倍で、${a} × ${b} = ${p}`;
+    return `${y} を ${tens} と ${ones} に分けて、${x} × ${tens} + ${x} × ${ones} = ${x * tens} + ${x * ones} = ${p}`;
+}
+
+/** 0.1 がいくつ分かを表す (3.4 → 34) */
+const tenthsOf = v => Math.round(v * 10);
+
+/** 分数の文字 (分母が1なら整数) */
+const fracText = (n, d) => (d === 1 ? `${n}` : `${n}/${d}`);
+
+/** ちがう分母の分数のたし算・ひき算: 通分してから計算し、約分する */
+function fractionExplain(questionText, commonD, finalN, ansN, ansD) {
+    const [left, op, right] = questionText.replace(' = ?', '').split(' ');
+    const scale = (f) => {
+        const [n, d] = f.split('/').map(Number);
+        return `${n * (commonD / d)}/${commonD}`;
+    };
+    const steps = `${left} ${op} ${right} = ${scale(left)} ${op} ${scale(right)} = ${finalN}/${commonD}`;
+    const reduced = finalN === ansN ? '' : `。約分して ${fracText(ansN, ansD)}`;
+    return `分母を ${commonD} にそろえて（通分して）計算する。${steps}${reduced}`;
+}
+
 /**
  * たしざん・ひきざんの問題を生成
  */
@@ -8,14 +64,16 @@ export function generateAdditionQuestion(r) {
     const num1 = r.int(1, 20);
     const num2 = r.int(1, 20);
     const operator = r.bool() ? '+' : '-';
-    let questionText, correctAnswer;
+    let questionText, correctAnswer, explain;
 
     if (operator === '+' || num1 >= num2) {
         questionText = `${num1} ${operator} ${num2} = ?`;
         correctAnswer = operator === '+' ? num1 + num2 : num1 - num2;
+        explain = operator === '+' ? additionExplain(num1, num2) : subtractionExplain(num1, num2);
     } else {
         questionText = `${num2} - ${num1} = ?`;
         correctAnswer = num2 - num1;
+        explain = subtractionExplain(num2, num1);
     }
 
     const options = new Set([correctAnswer]);
@@ -29,7 +87,8 @@ export function generateAdditionQuestion(r) {
     return {
         question: questionText,
         options: r.shuffle(Array.from(options)),
-        answer: correctAnswer
+        answer: correctAnswer,
+        explain,
     };
 }
 
@@ -91,7 +150,8 @@ export function generateMultiplicationQuestion(r, questionsAsked = 1) {
     return {
         question: questionText,
         options: r.shuffle(Array.from(options)),
-        answer: correctAnswer
+        answer: correctAnswer,
+        explain: multiplicationExplain(num1, num2),
     };
 }
 
@@ -122,7 +182,10 @@ export function generateDivisionQuestion(r) {
         return {
             question: questionText,
             options: r.shuffle(Array.from(options)),
-            answer: correctAnswer
+            answer: correctAnswer,
+            explain: divisor === 10
+                ? `10 × □ = ${dividend} になる □ をさがす。10 × ${quotient} = ${dividend} なので ${quotient}`
+                : `${divisor} × □ = ${dividend} になる □ を、${divisor}のだんの九九でさがす。${divisor} × ${quotient} = ${dividend} なので ${quotient}`,
         };
     } else {
         // あまりのある問題
@@ -153,7 +216,8 @@ export function generateDivisionQuestion(r) {
         return {
             question: questionText,
             options: r.shuffle(Array.from(options)),
-            answer: correctAnswer
+            answer: correctAnswer,
+            explain: `${divisor}のだんの九九で、${dividend} をこえない一番大きい数は ${divisor} × ${quotient} = ${divisor * quotient}。${dividend} - ${divisor * quotient} = ${remainder} があまり（あまりは、わる数の ${divisor} より小さい）。答えは ${quotient} あまり ${remainder}`,
         };
     }
 }
@@ -197,7 +261,10 @@ export function generateDecimalsQuestion(r) {
     return {
         question: questionText,
         options: r.shuffle(Array.from(options)),
-        answer: correctAnswer
+        answer: correctAnswer,
+        explain: op === '×'
+            ? `${num1} は 0.1 が ${tenthsOf(num1)}こ。${tenthsOf(num1)} × ${num2} = ${tenthsOf(correctAnswer)} なので、0.1 が ${tenthsOf(correctAnswer)}こで ${correctAnswer}`
+            : `0.1 がいくつ分かで考える。${num1} は ${tenthsOf(num1)}こ、${num2} は ${tenthsOf(num2)}こ。${tenthsOf(num1)} ${op} ${tenthsOf(num2)} = ${tenthsOf(correctAnswer)} なので、0.1 が ${tenthsOf(correctAnswer)}こで ${correctAnswer}`,
     };
 }
 
@@ -245,7 +312,8 @@ export function generateFractionsQuestion(r) {
         return {
             question: questionText,
             options: r.shuffle(Array.from(options)),
-            answer: correctAnswer
+            answer: correctAnswer,
+            explain: `分母が同じなので、分母の ${denominator} はそのままで、分子だけ計算する。${op === '+' ? `${num1} + ${num2}` : `${num1} - ${num2}`} = ${resultNum} なので ${correctAnswer}`,
         };
     } else {
         // 異分母の問題（通分が必要）
@@ -320,7 +388,8 @@ export function generateFractionsQuestion(r) {
         return {
             question: questionText,
             options: r.shuffle(Array.from(options)),
-            answer: correctAnswer
+            answer: correctAnswer,
+            explain: fractionExplain(questionText, commonD, finalN, ansN, ansD),
         };
     }
 }

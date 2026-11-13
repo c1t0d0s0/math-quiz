@@ -83,12 +83,25 @@ describe('今日のチャレンジの問題', () => {
         for (let i = 0; i < 60; i++) {
             const qs = createDailyQuestions('low', date);
             for (const q of qs) {
-                const kanji = (q.question + q.options.join('')).match(/[一-鿿]/g) || [];
+                const kanji = (q.question + q.options.join('') + q.explain).match(/[一-鿿]/g) || [];
                 expect(kanji.filter(c => !LOW_KANJI.includes(c)), q.question).toEqual([]);
             }
             const calc = qs.filter(q => !q.isWord).map(q => q.question);
             expect(calc.filter(t => /^\d+ [+-] \d+ = \?$/.test(t)), date).toHaveLength(4);
             expect(calc.filter(t => /^\S+ = \?\D+$/.test(t)), date).toHaveLength(1);
+            date = addDays(date, 1);
+        }
+    });
+
+    it('どの問題にも解き方の文がある', () => {
+        let date = '2026-10-01';
+        for (let i = 0; i < 60; i++) {
+            for (const level of LEVELS) {
+                for (const q of createDailyQuestions(level, date)) {
+                    expect(typeof q.explain, `${date} ${level}: ${q.question ?? q.text}`).toBe('string');
+                    expect(q.explain.length).toBeGreaterThan(5);
+                }
+            }
             date = addDays(date, 1);
         }
     });

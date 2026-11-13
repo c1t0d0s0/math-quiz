@@ -2504,3 +2504,25 @@ button {
     color: var(--muted);
     font-size: 0.875rem;
 }
+
+/* ---- 今日のチャレンジの結果: まちがえた問題と解き方 (一覧の形は .kentei-missed と同じ) ---- */
+.daily-missed {
+    margin-top: 1.25rem;
+}
+
+.daily-missed h3 {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.daily-explain {
+    margin-top: 0.35rem;
+    padding: 0.4rem 0.6rem;
+    background: var(--mark-soft);
+    line-height: 1.7;
+}
+
+.daily-explain b {
+    margin-right: 0.5em;
+}
+

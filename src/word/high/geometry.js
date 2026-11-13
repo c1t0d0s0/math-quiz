@@ -1,4 +1,4 @@
-import { defineTopic } from '../helpers.js';
+import { defineTopic, fmtNum } from '../helpers.js';
 
 // 円周率 3.14 のかけ算を誤差なく行う
 const pi = v => (v * 314) / 100;
@@ -10,6 +10,7 @@ const taiseki = defineTopic('high-taiseki', '体積と容積', [
         return {
             text: `たて${a}cm、横${b}cm、高さ${c}cmの直方体の箱があります。この箱の体積は何cm³ですか。`,
             answer: a * b * c, unit: 'cm³', wrong: [a + b + c, a * b + c, 2 * (a * b + b * c + c * a)],
+            explain: `直方体の体積 = たて × 横 × 高さ。${a} × ${b} × ${c} = ${a * b * c}（cm³）`,
         };
     },
     (r) => {
@@ -18,6 +19,7 @@ const taiseki = defineTopic('high-taiseki', '体積と容積', [
         return {
             text: `内のりが、たて${a}cm、横${b}cm、深さ${c}cmの水そうがあります。この水そうには水が何L入りますか。`,
             answer: v, unit: 'L', wrong: [v * 10, v / 10, v * 100],
+            explain: `水そうの容積は ${a} × ${b} × ${c} = ${a * b * c}（cm³）。1L = 1000cm³ なので、${a * b * c} ÷ 1000 = ${fmtNum(v)}（L）`,
         };
     },
     (r) => {
@@ -25,6 +27,7 @@ const taiseki = defineTopic('high-taiseki', '体積と容積', [
         return {
             text: `内のりが、たて${a}cm、横${b}cmの直方体の水そうに、水を${a * b * h}cm³入れました。水の深さは何cmになりますか。`,
             answer: h, unit: 'cm', wrong: [h + 1, h - 1, h * 2],
+            explain: `水の深さ = 水の体積 ÷ 底面積。底面積は ${a} × ${b} = ${a * b}（cm²）なので、${a * b * h} ÷ ${a * b} = ${h}（cm）`,
         };
     },
     (r) => {
@@ -32,6 +35,7 @@ const taiseki = defineTopic('high-taiseki', '体積と容積', [
         return {
             text: `内のりが、たて${a}cm、横${b}cmの水そうに石をしずめたら、水面が${h}cm上がりました。石の体積は何cm³ですか。`,
             answer: a * b * h, unit: 'cm³', wrong: [a * b, (a + b) * h, a * b * (h + 1)],
+            explain: `石の体積は、上がった水の体積と同じです。${a} × ${b} × ${h} = ${a * b * h}（cm³）`,
         };
     },
 ]);
@@ -43,6 +47,7 @@ const en = defineTopic('high-en', '円', [
         return {
             text: `直径${d}mの円形の${what}があります。まわりの長さは何mですか。${PI_NOTE}`,
             answer: pi(d), unit: 'm', wrong: [pi(d) / 2, pi(d * 2), pi(d + 1)],
+            explain: `円周 = 直径 × 3.14。${d} × 3.14 = ${fmtNum(pi(d))}（m）`,
         };
     },
     (r) => {
@@ -50,6 +55,7 @@ const en = defineTopic('high-en', '円', [
         return {
             text: `まわりの長さが${pi(d)}mの円形の花だんがあります。この花だんの直径は何mですか。${PI_NOTE}`,
             answer: d, unit: 'm', wrong: [d * 2, d + 1, d - 1, d + 2],
+            explain: `円周 = 直径 × 3.14 なので、直径 = 円周 ÷ 3.14。${fmtNum(pi(d))} ÷ 3.14 = ${d}（m）`,
         };
     },
     (r) => {
@@ -57,6 +63,7 @@ const en = defineTopic('high-en', '円', [
         return {
             text: `半径${rad}cmの円の形をしたコースターがあります。面積は何cm²ですか。${PI_NOTE}`,
             answer: pi(rad * rad), unit: 'cm²', wrong: [pi(rad * 2), pi(rad * rad * 4), pi(rad * rad * 2)],
+            explain: `円の面積 = 半径 × 半径 × 3.14。${rad} × ${rad} × 3.14 = ${fmtNum(pi(rad * rad))}（cm²）`,
         };
     },
     (r) => {
@@ -64,6 +71,7 @@ const en = defineTopic('high-en', '円', [
         return {
             text: `直径${d}cmの車輪が${n}回転すると、何cm進みますか。${PI_NOTE}`,
             answer: pi(d * n), unit: 'cm', wrong: [d * n, pi(d * n) / 2, pi(d * n) / 10],
+            explain: `車輪が1回転すると、円周の長さだけ進みます。円周は ${d} × 3.14 = ${fmtNum(pi(d))}（cm）なので、${fmtNum(pi(d))} × ${n} = ${fmtNum(pi(d * n))}（cm）`,
         };
     },
 ]);
@@ -75,6 +83,7 @@ const menseki = defineTopic('high-menseki', '図形の面積', [
         return {
             text: `底辺が${a}cm、高さが${h}cmの三角形があります。面積は何cm²ですか。`,
             answer: (a * h) / 2, unit: 'cm²', wrong: [a * h, a + h, (a * h) / 2 + a],
+            explain: `三角形の面積 = 底辺 × 高さ ÷ 2。${a} × ${h} ÷ 2 = ${(a * h) / 2}（cm²）`,
         };
     },
     (r) => {
@@ -82,6 +91,7 @@ const menseki = defineTopic('high-menseki', '図形の面積', [
         return {
             text: `底辺が${a}m、高さが${h}mの平行四辺形の形をした花だんがあります。面積は何m²ですか。`,
             answer: a * h, unit: 'm²', wrong: [(a * h) / 2, 2 * (a + h), a * h + a],
+            explain: `平行四辺形の面積 = 底辺 × 高さ。${a} × ${h} = ${a * h}（m²）`,
         };
     },
     (r) => {
@@ -92,6 +102,7 @@ const menseki = defineTopic('high-menseki', '図形の面積', [
         return {
             text: `上底が${a}cm、下底が${b}cm、高さが${h}cmの台形があります。面積は何cm²ですか。`,
             answer: ((a + b) * h) / 2, unit: 'cm²', wrong: [(a + b) * h, (a * b * h) / 2, a * h + b],
+            explain: `台形の面積 = (上底 + 下底) × 高さ ÷ 2。(${a} + ${b}) × ${h} ÷ 2 = ${((a + b) * h) / 2}（cm²）`,
         };
     },
     (r) => {
@@ -100,6 +111,7 @@ const menseki = defineTopic('high-menseki', '図形の面積', [
         return {
             text: `面積が${(a * h) / 2}cm²で、底辺が${a}cmの三角形があります。この三角形の高さは何cmですか。`,
             answer: h, unit: 'cm', wrong: [h / 2, h + 1, h - 1, h * 2],
+            explain: `三角形の面積 = 底辺 × 高さ ÷ 2 なので、高さ = 面積 × 2 ÷ 底辺。${(a * h) / 2} × 2 ÷ ${a} = ${h}（cm）`,
         };
     },
 ]);

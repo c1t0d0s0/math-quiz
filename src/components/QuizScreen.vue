@@ -2,6 +2,7 @@
 import { ref, computed, watch, nextTick } from 'vue';
 import { formatTime } from '../modes.js';
 import FillQuestion from './FillQuestion.vue';
+import { correctText as answerText } from '../answers.js';
 import Figure from './figures/Figure.vue';
 import FigureList from './figures/FigureList.vue';
 import MemoPad from './MemoPad.vue';
@@ -53,12 +54,7 @@ const isCorrect = computed(() => {
     if (q.type !== 'fill') return props.selected === q.answer;
     return props.selected.length === q.blanks.length && props.selected.every((v, i) => Number(v) === q.blanks[i]);
 });
-const correctText = computed(() => {
-    const q = props.question;
-    if (q.type !== 'fill') return q.answer;
-    let i = 0;
-    return q.parts.map(p => (typeof p === 'string' ? p : String(q.blanks[i++]))).join('').trim();
-});
+const correctText = computed(() => answerText(props.question));
 const isLast = computed(() => props.index + 1 >= props.total);
 const after = ref(null);
 watch(() => props.selected, async (value) => {

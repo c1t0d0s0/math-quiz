@@ -50,6 +50,10 @@ describe.each(LEVELS)('単位の問題 %s', (level) => {
             expect(new Set(q.options).size, where).toBe(4);
             expect(q.options, where).toContain(q.answer);
             expect([q.question, ...q.options].join(' '), where).not.toMatch(/NaN|undefined|e[+-]/);
+            // 解き方の文に、答えの数が出てくる
+            expect(q.explain, where).toMatch(/なので/);
+            expect(q.explain, where).not.toMatch(/NaN|undefined|e[+-]\d|\d\.\d{4,}/);
+            expect((q.answer.match(/\d+(\.\d+)?/g) || []).every(n => q.explain.includes(n)), `${where} / ${q.explain}`).toBe(true);
         }
     });
 

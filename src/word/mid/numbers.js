@@ -10,6 +10,7 @@ const ookii = defineTopic('mid-ookii', '大きな数のたし算・ひき算', [
         return {
             text: `ある町の人口は、男の人が${a}人、女の人が${b}人です。合わせて何人ですか。`,
             answer: a + b, unit: '人', wrong: [a + b + 100, a + b - 1000, a + b - 10],
+            explain: `合わせるので、たし算です。${a} + ${b} = ${a + b}（人）`,
         };
     },
     (r) => {
@@ -19,6 +20,7 @@ const ookii = defineTopic('mid-ookii', '大きな数のたし算・ひき算', [
         return {
             text: `${one(r)}さんは${a}円ちょ金しています。${b}円の${what}を買うと、残りは何円になりますか。`,
             answer: a - b, unit: '円', wrong: [a - b + 1000, a - b - 100, a - b + 10],
+            explain: `残りをもとめるので、ひき算です。${a} − ${b} = ${a - b}（円）`,
         };
     },
     (r) => {
@@ -28,6 +30,7 @@ const ookii = defineTopic('mid-ookii', '大きな数のたし算・ひき算', [
         return {
             text: `${place}の入場者数は、きのうが${a}人、今日が${b}人でした。今日はきのうより何人多いですか。`,
             answer: b - a, unit: '人', wrong: [b - a + 100, b - a - 10, b - a + 1000],
+            explain: `ちがいをもとめるので、ひき算です。${b} − ${a} = ${b - a}（人）`,
         };
     },
     (r) => {
@@ -35,6 +38,7 @@ const ookii = defineTopic('mid-ookii', '大きな数のたし算・ひき算', [
         return {
             text: `${one(r)}さんは物語の本を、1日目に${a}ページ、2日目に${b}ページ、3日目に${c}ページ読みました。3日間で何ページ読みましたか。`,
             answer: a + b + c, unit: 'ページ', wrong: [a + b + c - 100, a + b + c + 10, a + b],
+            explain: `3日分を合わせるので、たし算です。${a} + ${b} + ${c} = ${a + b + c}（ページ）`,
         };
     },
 ]);
@@ -46,6 +50,7 @@ const kakezan = defineTopic('mid-kakezan', '2けたのかけ算', [
         return {
             text: `1${u}${a}円の${what}を${b}${u}買います。代金は何円ですか。`,
             answer: a * b, unit: '円', wrong: [a * b + a, a * b - 10 * b, a * b + 100],
+            explain: `1${u}のねだん × 買う数 で、かけ算です。${a} × ${b} = ${a * b}（円）`,
         };
     },
     (r) => {
@@ -54,6 +59,7 @@ const kakezan = defineTopic('mid-kakezan', '2けたのかけ算', [
         return {
             text: `1箱に${a}本ずつ入っている${what}が${b}箱あります。${what}は全部で何本ですか。`,
             answer: a * b, unit: '本', wrong: [a + b, a * b + a, a * b - 10],
+            explain: `1箱分の${b}箱分なので、かけ算です。${a} × ${b} = ${a * b}（本）`,
         };
     },
     (r) => {
@@ -62,6 +68,7 @@ const kakezan = defineTopic('mid-kakezan', '2けたのかけ算', [
         return {
             text: `1まい${a}円の${what}を${b}まい買って、1000円さつではらいました。おつりは何円ですか。`,
             answer: 1000 - a * b, unit: '円', wrong: [a * b, 1000 - a * b + 100, 1000 - a - b],
+            explain: `代金は ${a} × ${b} = ${a * b}（円）。おつりは 1000 − ${a * b} = ${1000 - a * b}（円）`,
         };
     },
     (r) => {
@@ -69,6 +76,7 @@ const kakezan = defineTopic('mid-kakezan', '2けたのかけ算', [
         return {
             text: `1時間に${a}この部品を作るきかいがあります。${b}時間では、部品を何こ作れますか。`,
             answer: a * b, unit: 'こ', wrong: [a * b + a, a * b - 100, a + b],
+            explain: `1時間に作る数の${b}時間分なので、かけ算です。${a} × ${b} = ${a * b}（こ）`,
         };
     },
     (r) => {
@@ -76,6 +84,7 @@ const kakezan = defineTopic('mid-kakezan', '2けたのかけ算', [
         return {
             text: `1箱${a}こ入りのあめを、1人に${b}箱ずつ、${c}人に配ります。あめは全部で何こいりますか。`,
             answer: a * b * c, unit: 'こ', wrong: [a * (b + c), a * b + c, a * b],
+            explain: `1人分は ${a} × ${b} = ${a * b}（こ）。${c}人分なので、${a * b} × ${c} = ${a * b * c}（こ）`,
         };
     },
 ]);
@@ -87,6 +96,7 @@ const shikaku = defineTopic('mid-shikaku', '□を使った式', [
         return {
             text: `ある数に${a}をたしてから${b}をかけると、${t}になりました。ある数はいくつですか。`,
             answer: x, wrong: [t / b + a, x + a, t - a * b],
+            explain: `ある数を□とすると、(□ + ${a}) × ${b} = ${t}。うしろから順にもどします。□ + ${a} = ${t} ÷ ${b} = ${x + a}、□ = ${x + a} − ${a} = ${x}`,
         };
     },
     (r) => {
@@ -94,6 +104,7 @@ const shikaku = defineTopic('mid-shikaku', '□を使った式', [
         return {
             text: `ある数を${a}でわってから${b}をひくと、${c}になりました。ある数はいくつですか。`,
             answer: (c + b) * a, wrong: [c * a + b, Math.abs(c - b) * a, c + b],
+            explain: `ある数を□とすると、□ ÷ ${a} − ${b} = ${c}。うしろから順にもどします。□ ÷ ${a} = ${c} + ${b} = ${c + b}、□ = ${c + b} × ${a} = ${(c + b) * a}`,
         };
     },
     (r) => {
@@ -102,6 +113,7 @@ const shikaku = defineTopic('mid-shikaku', '□を使った式', [
         return {
             text: `ある数に${a}をたすつもりが、まちがえて${a}をひいてしまったので、答えが${c}になりました。正しい答えはいくつですか。`,
             answer: c + 2 * a, wrong: [c + a, c, c + 2 * a + 10],
+            explain: `まず、ある数をもとめます。□ − ${a} = ${c} なので、□ = ${c} + ${a} = ${c + a}。正しい答えは ${c + a} + ${a} = ${c + 2 * a}`,
         };
     },
     (r) => {
@@ -109,6 +121,7 @@ const shikaku = defineTopic('mid-shikaku', '□を使った式', [
         return {
             text: `ある数に${a}をかけるつもりが、まちがえて${a}でわってしまったので、答えが${c}になりました。正しい答えはいくつですか。`,
             answer: c * a * a, wrong: [c * a, c, c * a * a + a],
+            explain: `まず、ある数をもとめます。□ ÷ ${a} = ${c} なので、□ = ${c} × ${a} = ${c * a}。正しい答えは ${c * a} × ${a} = ${c * a * a}`,
         };
     },
 ]);
@@ -120,6 +133,7 @@ const junjo = defineTopic('mid-junjo', '計算の順じょ', [
         return {
             text: `1こ${a}円の${fruit}を${n}こと、${b}円のかごを1つ買いました。代金は全部で何円ですか。`,
             answer: a * n + b, unit: '円', step: 10, wrong: [(a + b) * n, a + b],
+            explain: `${fruit}の代金にかごの代金をたします。かけ算を先に計算して、${a} × ${n} + ${b} = ${a * n} + ${b} = ${a * n + b}（円）`,
         };
     },
     (r) => {
@@ -128,6 +142,7 @@ const junjo = defineTopic('mid-junjo', '計算の順じょ', [
         return {
             text: `1000円持って買い物に行き、${a}円の${x}と${b}円の${y}を買いました。残りは何円ですか。`,
             answer: 1000 - a - b, unit: '円', step: 10, wrong: [1000 - a + b, 1000 - a, a + b],
+            explain: `1000円から、使ったお金を順にひきます。1000 − ${a} − ${b} = ${1000 - a} − ${b} = ${1000 - a - b}（円）`,
         };
     },
     (r) => {
@@ -136,6 +151,7 @@ const junjo = defineTopic('mid-junjo', '計算の順じょ', [
         return {
             text: `1こ${a}円の${s}と1本${b}円のジュースを組にして、${n}組買いました。代金は全部で何円ですか。`,
             answer: (a + b) * n, unit: '円', step: 10, wrong: [a + b * n, a * n + b, a + b],
+            explain: `1組の代金は ${a} + ${b} = ${a + b}（円）。(${a} + ${b}) × ${n} = ${a + b} × ${n} = ${(a + b) * n}（円）`,
         };
     },
     (r) => {
@@ -143,6 +159,7 @@ const junjo = defineTopic('mid-junjo', '計算の順じょ', [
         return {
             text: `1本${a}円のえん筆を${m}本と、1こ${b}円の消しゴムを${n}こ買いました。代金は全部で何円ですか。`,
             answer: a * m + b * n, unit: '円', step: 10, wrong: [(a + b) * (m + n), a * m + b, a + b],
+            explain: `えん筆の代金と消しゴムの代金をたします。${a} × ${m} + ${b} × ${n} = ${a * m} + ${b * n} = ${a * m + b * n}（円）`,
         };
     },
     (r) => {
@@ -151,6 +168,7 @@ const junjo = defineTopic('mid-junjo', '計算の順じょ', [
         return {
             text: `${t}まいの色紙を、男の子${a}人と女の子${b}人で同じ数ずつ分けます。1人分は何まいになりますか。`,
             answer: each, unit: 'まい', wrong: [t / a, t / b, t - a - b],
+            explain: `まず人数を合わせます。${t} ÷ (${a} + ${b}) = ${t} ÷ ${a + b} = ${each}（まい）`,
         };
     },
 ]);
@@ -164,6 +182,7 @@ const gaisuu = defineTopic('mid-gaisuu', 'がい数', [
             text: `ある市の人口は${n}人です。四捨五入して千の位までのがい数にすると、約何人ですか。`,
             answer: round(n, 1000), prefix: '約', unit: '人', step: 1000,
             wrong: [down, down + 1000, round(n, 10000), round(n, 100)],
+            explain: `千の位までのがい数にするので、1つ下の百の位の数字を見ます。百の位は${Math.floor(n / 100) % 10}で、${Math.floor(n / 100) % 10 >= 5 ? '5以上なので切り上げて' : '4以下なので切り捨てて'}、約${round(n, 1000)}人`,
         };
     },
     (r) => {
@@ -173,6 +192,7 @@ const gaisuu = defineTopic('mid-gaisuu', 'がい数', [
             text: `${a}円のシャツと${b}円のズボンを買います。それぞれ四捨五入して百の位までのがい数にしてから、代金の合計を見積もると約何円ですか。`,
             answer: round(a, 100) + round(b, 100), prefix: '約', unit: '円', step: 100,
             wrong: [down, down + 200, round(a, 1000) + round(b, 1000)],
+            explain: `十の位を四捨五入して、${a}円は約${round(a, 100)}円、${b}円は約${round(b, 100)}円。${round(a, 100)} + ${round(b, 100)} = ${round(a, 100) + round(b, 100)} なので、約${round(a, 100) + round(b, 100)}円`,
         };
     },
     (r) => {
@@ -180,6 +200,7 @@ const gaisuu = defineTopic('mid-gaisuu', 'がい数', [
         return {
             text: `ある学校の児童数は、四捨五入して十の位までのがい数にすると${n}人です。児童数がいちばん多い場合、何人ですか。`,
             answer: n + 4, unit: '人', wrong: [n + 5, n + 9, n - 5],
+            explain: `一の位を四捨五入して${n}人になるのは、${n - 5}人から${n + 4}人までです。${n + 5}人だと${n + 10}人になってしまうので、いちばん多いのは${n + 4}人`,
         };
     },
 ]);

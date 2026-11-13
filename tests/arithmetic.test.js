@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createRng } from '../src/generators/rng.js';
-import { createCalcGenerator } from '../src/generators/arithmetic.js';
+import { additionExplain, createCalcGenerator, multiplicationExplain, subtractionExplain } from '../src/generators/arithmetic.js';
 import { MODES, createGenerator, resolveGrade } from '../src/modes.js';
 
 const CALC_MODES = ['addition', 'multiplication', 'division', 'decimals', 'fractions', 'units-low', 'units-mid', 'units-high', 'mixed'];
@@ -16,7 +16,27 @@ describe.each(CALC_MODES)('計算モード %s', (mode) => {
             expect(new Set(options).size, where).toBe(4);
             expect(options, where).toContain(String(q.answer));
             expect([q.question, ...options].join(' '), where).not.toMatch(/NaN|undefined/);
+            // 解き方の文があり、答えの数が出てくる
+            expect(typeof q.explain, where).toBe('string');
+            expect(q.explain, where).not.toMatch(/NaN|undefined|\d\.\d{4,}/);
+            expect((String(q.answer).match(/\d+(\.\d+)?/g) || []).every(n => q.explain.includes(n)), `${where} / ${q.explain}`).toBe(true);
         }
+    });
+});
+
+describe('計算の解き方', () => {
+    it('くり上がり・くり下がりは、10 のまとまりで説明する', () => {
+        expect(additionExplain(8, 7)).toBe('8 + 7 は、7 を 2 と 5 に わけて、8 + 2 = 10、10 + 5 = 15');
+        expect(additionExplain(13, 7)).toBe('13 + 7 = 20');
+        expect(subtractionExplain(15, 8)).toBe('15 を 10 と 5 に わけて、10 - 8 = 2、2 + 5 = 7');
+        expect(subtractionExplain(20, 8)).toBe('20 を 10 と 10 に わけて、10 - 8 = 2、10 + 2 = 12');
+        expect(subtractionExplain(17, 5)).toBe('17 - 5 = 12');
+    });
+
+    it('2けたのかけ算は、位ごとに分ける', () => {
+        expect(multiplicationExplain(7, 8)).toBe('7のだんの九九で、7 × 8 = 56');
+        expect(multiplicationExplain(14, 7)).toBe('14 を 10 と 4 に分けて、7 × 10 + 7 × 4 = 70 + 28 = 98');
+        expect(multiplicationExplain(13, 20)).toBe('13 × 2 = 26 の 10倍で、13 × 20 = 260');
     });
 });
 

@@ -1,4 +1,4 @@
-import { defineTopic } from '../helpers.js';
+import { defineTopic, fmtNum } from '../helpers.js';
 import { names, items, foods, colorsKanji } from '../vocab.js';
 
 const M = 'mid';
@@ -11,6 +11,7 @@ const warizan = defineTopic('mid-warizan', 'わり算', [
         return {
             text: `${I.name}が${a * b}${I.unit}あります。${b}人で同じ数ずつ分けると、1人分は${I.q}になりますか。`,
             answer: a, unit: I.unit, wrong: [a * b - b, a + 1, b === a ? a + 2 : b],
+            explain: `1人分をもとめるので、わり算です。${a * b} ÷ ${b} = ${a}（${I.unit}）`,
         };
     },
     (r) => {
@@ -19,6 +20,7 @@ const warizan = defineTopic('mid-warizan', 'わり算', [
         return {
             text: `${I.name}が${a * b}${I.unit}あります。1人に${a}${I.unit}ずつ配ると、何人に配れますか。`,
             answer: b, unit: '人', wrong: [a * b - a, b + 1, b - 1],
+            explain: `何人に配れるかをもとめるので、わり算です。${a * b} ÷ ${a} = ${b}（人）`,
         };
     },
     (r) => {
@@ -26,6 +28,7 @@ const warizan = defineTopic('mid-warizan', 'わり算', [
         return {
             text: `長さ${a * n}cmのリボンを、${a}cmずつに切ります。${a}cmのリボンは何本できますか。`,
             answer: n, unit: '本', wrong: [a * n - a, n + 1, n - 1],
+            explain: `${a}cmがいくつ分あるかをもとめるので、わり算です。${a * n} ÷ ${a} = ${n}（本）`,
         };
     },
     (r) => {
@@ -34,6 +37,7 @@ const warizan = defineTopic('mid-warizan', 'わり算', [
         return {
             text: `同じねだんの${what[0]}を${b}${what[1]}買ったら、代金は${a * b}円でした。${what[0]}1${what[1]}のねだんは何円ですか。`,
             answer: a, unit: '円', step: 10, wrong: [a * b - b],
+            explain: `代金を買った数でわると、1${what[1]}のねだんが出ます。${a * b} ÷ ${b} = ${a}（円）`,
         };
     },
     (r) => {
@@ -42,6 +46,7 @@ const warizan = defineTopic('mid-warizan', 'わり算', [
         return {
             text: `${a * b}まいの色紙を、${b}人で同じ数ずつ分けます。1人分は何まいになりますか。`,
             answer: a, unit: 'まい', wrong: [a + 10, a - 10, a * b - b],
+            explain: `同じ数ずつ分けるので、わり算です。${a * b} ÷ ${b} = ${a}（まい）`,
         };
     },
 ]);
@@ -63,27 +68,31 @@ const amari = defineTopic('mid-amari', 'あまりのあるわり算', [
             text: `${I.name}が${t}${I.unit}あります。1ふくろに${a}${I.unit}ずつ入れると、何ふくろできて、何${I.unit}あまりますか。`,
             answer: fmt(q, m),
             wrong: [fmt(q + 1, m), fmt(q - 1, m + a), fmt(q, m + 1), fmt(m, q)],
+            explain: `${a}${I.unit}ずついくつ分とれるかをもとめるので、わり算です。${t} ÷ ${a} = ${q} あまり ${m} だから、${fmt(q, m)}。`,
         };
     },
     (r) => {
-        const { a, q, t } = withRemainder(r, 3, 6, 4, 9);
+        const { a, q, m, t } = withRemainder(r, 3, 6, 4, 9);
         return {
             text: `${t}人の子どもが、長いす1きゃくに${a}人ずつすわります。全員がすわるには、長いすは何きゃくいりますか。`,
             answer: q + 1, unit: 'きゃく', wrong: [q, q + 2],
+            explain: `${t} ÷ ${a} = ${q} あまり ${m}。${q}きゃくにすわると${m}人のこるので、もう1きゃくいります。${q} + 1 = ${q + 1}（きゃく）`,
         };
     },
     (r) => {
-        const { a, q, t } = withRemainder(r, 2, 6, 5, 12);
+        const { a, q, m, t } = withRemainder(r, 2, 6, 5, 12);
         return {
             text: `はば${t}cmの本立てに、あつさ${a}cmの本を立てていきます。本は何さつまで立てられますか。`,
             answer: q, unit: 'さつ', wrong: [q + 1, q - 1],
+            explain: `${t} ÷ ${a} = ${q} あまり ${m}。のこりの${m}cmには${a}cmの本は立てられないので、${q}さつです。`,
         };
     },
     (r) => {
-        const { a, q, t } = withRemainder(r, 4, 9, 3, 9);
+        const { a, q, m, t } = withRemainder(r, 4, 9, 3, 9);
         return {
             text: `${t}このにもつを、1回に${a}こずつ運びます。全部運び終わるには、何回運べばよいですか。`,
             answer: q + 1, unit: '回', wrong: [q, q + 2],
+            explain: `${t} ÷ ${a} = ${q} あまり ${m}。のこりの${m}こを運ぶのにもう1回いるので、${q} + 1 = ${q + 1}（回）`,
         };
     },
     (r) => {
@@ -94,6 +103,7 @@ const amari = defineTopic('mid-amari', 'あまりのあるわり算', [
         return {
             text: `${t}円持っています。1こ${a}円の${what}は、何こまで買えますか。`,
             answer: q, unit: 'こ', wrong: [q + 1, q - 1],
+            explain: `${t} ÷ ${a} = ${q} あまり ${t - a * q}。のこりの${t - a * q}円では${a}円の${what}は買えないので、${q}こです。`,
         };
     },
     (r) => {
@@ -102,6 +112,7 @@ const amari = defineTopic('mid-amari', 'あまりのあるわり算', [
         return {
             text: `${t}まいの${what}を、${a}人で同じ数ずつできるだけ多く分けます。何まいあまりますか。`,
             answer: m, unit: 'まい', wrong: [q, m + 1, a],
+            explain: `${t} ÷ ${a} = ${q} あまり ${m}。1人${q}まいずつ分けると、${m}まいあまります。`,
         };
     },
 ]);
@@ -113,6 +124,7 @@ const bai = defineTopic('mid-bai', '倍の計算', [
         return {
             text: `${c1}のテープは${a * k}cm、${c2}のテープは${a}cmです。${c1}のテープの長さは、${c2}のテープの長さの何倍ですか。`,
             answer: k, unit: '倍', wrong: [a * k - a, k + 1, k - 1],
+            explain: `何倍かをもとめるので、わり算です。${a * k} ÷ ${a} = ${k}（倍）`,
         };
     },
     (r) => {
@@ -122,6 +134,7 @@ const bai = defineTopic('mid-bai', '倍の計算', [
         return {
             text: `${who}の体重は${a * k}kgで、これは${p}さんの体重の${k}倍です。${p}さんの体重は何kgですか。`,
             answer: a, unit: 'kg', wrong: [a * k * k, a * k - k, a + k],
+            explain: `${p}さんの体重を□kgとすると、□ × ${k} = ${a * k}。□ = ${a * k} ÷ ${k} = ${a}（kg）`,
         };
     },
     (r) => {
@@ -130,6 +143,7 @@ const bai = defineTopic('mid-bai', '倍の計算', [
         return {
             text: `${c1}のリボンは${a}cmです。${c2}のリボンは${c1}のリボンの${j}倍、${c3}のリボンは${c2}のリボンの${k}倍の長さです。${c3}のリボンは何cmですか。`,
             answer: a * j * k, unit: 'cm', wrong: [a * (j + k), a * j, a * j + k],
+            explain: `${c2}のリボンは ${a} × ${j} = ${a * j}（cm）。${c3}のリボンは ${a * j} × ${k} = ${a * j * k}（cm）`,
         };
     },
     (r) => {
@@ -139,6 +153,7 @@ const bai = defineTopic('mid-bai', '倍の計算', [
         return {
             text: `${p}さんのテープは${a}m、${q}さんのテープは${(a * k10) / 10}mです。${q}さんのテープの長さは、${p}さんのテープの長さの何倍ですか。`,
             answer: k10 / 10, unit: '倍', wrong: [(a * k10) / 10 - a, k10 / 10 + 1],
+            explain: `何倍かをもとめるので、わり算です。${fmtNum((a * k10) / 10)} ÷ ${a} = ${fmtNum(k10 / 10)}（倍）`,
         };
     },
     (r) => {
@@ -147,6 +162,7 @@ const bai = defineTopic('mid-bai', '倍の計算', [
         return {
             text: `大きい箱には、小さい箱の${k}倍の${I.name}が入っています。小さい箱には${a}${I.unit}入っています。2つの箱の${I.name}は合わせて${I.q}ですか。`,
             answer: a * (k + 1), unit: I.unit, wrong: [a * k, a + k, a * (k + 2)],
+            explain: `大きい箱は ${a} × ${k} = ${a * k}（${I.unit}）。合わせて ${a} + ${a * k} = ${a * (k + 1)}（${I.unit}）`,
         };
     },
 ]);

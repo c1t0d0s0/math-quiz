@@ -1,4 +1,4 @@
-import { defineTopic, clock, clockWrongs, hourMin, compound } from '../helpers.js';
+import { defineTopic, clock, clockWrongs, hourMin, compound, fmtNum } from '../helpers.js';
 import { names, places } from '../vocab.js';
 
 const one = r => r.pick(names);
@@ -12,6 +12,7 @@ const jikan = defineTopic('mid-jikan', '時こくと時間', [
         return {
             text: `${one(r)}さんは${m}分${s}秒で${what}。これは何秒ですか。`,
             answer: m * 60 + s, unit: '秒', wrong: [m * 100 + s, m + s, m * 60 + s + 10],
+            explain: `1分 = 60秒です。${m}分は ${m} × 60 = ${m * 60}（秒）。${m * 60} + ${s} = ${m * 60 + s}（秒）`,
         };
     },
     (r) => {
@@ -23,6 +24,7 @@ const jikan = defineTopic('mid-jikan', '時こくと時間', [
         return {
             text: `${clock(t1, '午前')}に家を出て、${clock(t1 + d, '午前')}に${place}に着きました。かかった時間は何分ですか。`,
             answer: d, unit: '分', step: 5, wrong: [d + 40, d + 10],
+            explain: `${clock(t1, '午前')}から午前${h + 1}時までは${60 - m1}分、午前${h + 1}時から${clock(t1 + d, '午前')}までは${d - (60 - m1)}分です。${60 - m1} + ${d - (60 - m1)} = ${d}（分）`,
         };
     },
     (r) => {
@@ -36,6 +38,7 @@ const jikan = defineTopic('mid-jikan', '時こくと時間', [
         return {
             text: `${one(r)}さんは${s1}を${a}分、${s2}を${b}分勉強しました。合わせて何時間何分勉強しましたか。`,
             answer: hourMin(t), wrong,
+            explain: `${a} + ${b} = ${t}（分）。60分 = 1時間 なので、${t}分 = 60分 + ${t - 60}分 = ${hourMin(t)}`,
         };
     },
     (r) => {
@@ -47,6 +50,7 @@ const jikan = defineTopic('mid-jikan', '時こくと時間', [
         return {
             text: `${clock(h * 60 + m, '午後')}から${d}分間、${what}。終わった時こくは午後何時何分ですか。`,
             answer: clock(t, '午後'), wrong: [clock(t - 40, '午後'), ...clockWrongs(t, '午後')],
+            explain: `${clock(h * 60 + m, '午後')}から${60 - m}分たつと午後${h + 1}時です。のこりの ${d} − ${60 - m} = ${d - (60 - m)}（分）をたして、${clock(t, '午後')}`,
         };
     },
 ]);
@@ -59,6 +63,7 @@ const omosa = defineTopic('mid-nagasa-omosa', '長さと重さ', [
         return {
             text: `家から${p1}までは${a}m、${p1}から${p2}までは${b}mです。家から${p1}を通って${p2}まで行くと、道のりは何km何mですか。`,
             answer: kmM(t), wrong: [kmM(t + 100), kmM(t + 1000), kmM(t - 100 > 1000 ? t - 100 : t + 200), `${Math.floor(t / 100)}km${t % 100}m`],
+            explain: `${a} + ${b} = ${t}（m）。1000m = 1km なので、${t}m = ${kmM(t)}`,
         };
     },
     (r) => {
@@ -66,6 +71,7 @@ const omosa = defineTopic('mid-nagasa-omosa', '長さと重さ', [
         return {
             text: `${one(r)}さんの家から${r.pick(places)}までの道のりは${k}km${m}mです。これは何mですか。`,
             answer: k * 1000 + m, unit: 'm', wrong: [k * 100 + m, k * 10000 + m, k + m],
+            explain: `1km = 1000m なので、${k}km = ${k * 1000}m。${k * 1000} + ${m} = ${k * 1000 + m}（m）`,
         };
     },
     (r) => {
@@ -74,6 +80,7 @@ const omosa = defineTopic('mid-nagasa-omosa', '長さと重さ', [
         return {
             text: `${fruit}をかごに入れて重さをはかると、${a + b}gでした。かごだけの重さは${a}gです。${fruit}だけの重さは何gですか。`,
             answer: b, unit: 'g', wrong: [a + b + a, b + 100, b - 100],
+            explain: `全体の重さから、かごの重さをひきます。${a + b} − ${a} = ${b}（g）`,
         };
     },
     (r) => {
@@ -84,6 +91,7 @@ const omosa = defineTopic('mid-nagasa-omosa', '長さと重さ', [
         return {
             text: `1こ${g}gの${what}が${n}こあります。全部の重さは何kg何gですか。`,
             answer: kgG(t), wrong: [kgG(t + g), kgG(t + 1000), kgG(t + 100), kgG(t - 100)],
+            explain: `${g} × ${n} = ${t}（g）。1000g = 1kg なので、${t}g = ${kgG(t)}`,
         };
     },
     (r) => {
@@ -93,6 +101,7 @@ const omosa = defineTopic('mid-nagasa-omosa', '長さと重さ', [
         return {
             text: `トラックに、1こ${w}kgの荷物を${n}こ積みます。荷物の重さは全部で何tですか。`,
             answer: t, unit: 't', wrong: [t * 10, n, t + 1],
+            explain: `${w} × ${n} = ${w * n}（kg）。1000kg = 1t なので、${w * n}kg = ${fmtNum(t)}t`,
         };
     },
     (r) => {
@@ -101,6 +110,7 @@ const omosa = defineTopic('mid-nagasa-omosa', '長さと重さ', [
         return {
             text: `家から学校までの道のりは${a}mで、まっすぐにはかったきょりは${b}mです。道のりはきょりより何m長いですか。`,
             answer: a - b, unit: 'm', step: 10, wrong: [a + b, a - b + 100],
+            explain: `ちがいをもとめるので、ひき算です。${a} − ${b} = ${a - b}（m）`,
         };
     },
 ]);
@@ -114,6 +124,7 @@ const menseki = defineTopic('mid-menseki', '面積', [
         return {
             text: `たて${a}m、横${b}mの長方形の${what}があります。面積は何m²ですか。`,
             answer: a * b, unit: 'm²', wrong: [2 * (a + b), a + b, a * b + a],
+            explain: `長方形の面積 = たて × 横。${a} × ${b} = ${a * b}（m²）`,
         };
     },
     (r) => {
@@ -121,6 +132,7 @@ const menseki = defineTopic('mid-menseki', '面積', [
         return {
             text: `面積が${a * b}cm²の長方形があります。たての長さが${a}cmのとき、横の長さは何cmですか。`,
             answer: b, unit: 'cm', wrong: [a * b - a, b + 1, b - 1],
+            explain: `たて × 横 = 面積 なので、横 = 面積 ÷ たて。${a * b} ÷ ${a} = ${b}（cm）`,
         };
     },
     (r) => {
@@ -128,6 +140,7 @@ const menseki = defineTopic('mid-menseki', '面積', [
         return {
             text: `まわりの長さが${4 * a}cmの正方形があります。この正方形の面積は何cm²ですか。`,
             answer: a * a, unit: 'cm²', wrong: [4 * a, 2 * a * a, a * a + a],
+            explain: `正方形の4つの辺は同じ長さなので、1辺は ${4 * a} ÷ 4 = ${a}（cm）。面積は ${a} × ${a} = ${a * a}（cm²）`,
         };
     },
     (r) => {
@@ -135,6 +148,7 @@ const menseki = defineTopic('mid-menseki', '面積', [
         return {
             text: `たて${a}m、横${b}mの長方形の土地があります。その中に1辺${c}mの正方形の池があります。池をのぞいた土地の面積は何m²ですか。`,
             answer: a * b - c * c, unit: 'm²', wrong: [a * b, a * b - 4 * c, a * b - c],
+            explain: `土地全体は ${a} × ${b} = ${a * b}（m²）、池は ${c} × ${c} = ${c * c}（m²）。${a * b} − ${c * c} = ${a * b - c * c}（m²）`,
         };
     },
     (r) => {
@@ -142,6 +156,7 @@ const menseki = defineTopic('mid-menseki', '面積', [
         return {
             text: `たて${a}m、横${b}mの長方形の畑があります。この畑の面積は何a（アール）ですか。`,
             answer: (a * b) / 100, unit: 'a', wrong: [(a * b) / 10, a * b, (a + b) / 10],
+            explain: `面積は ${a} × ${b} = ${a * b}（m²）。1a = 100m² なので、${a * b} ÷ 100 = ${fmtNum((a * b) / 100)}（a）`,
         };
     },
 ]);
@@ -152,6 +167,7 @@ const kakudo = defineTopic('mid-kakudo', '角の大きさ', [
         return {
             text: `一直線（180°）を2つの角に分けました。一方の角が${a}°のとき、もう一方の角は何°ですか。`,
             answer: 180 - a, unit: '°', step: 5, wrong: [360 - a, Math.abs(90 - a)],
+            explain: `一直線の角は180°です。180 − ${a} = ${180 - a}（°）`,
         };
     },
     (r) => {
@@ -159,6 +175,7 @@ const kakudo = defineTopic('mid-kakudo', '角の大きさ', [
         return {
             text: `時計の長いはりは、${m}分間に何°回りますか。`,
             answer: m * 6, unit: '°', wrong: [m, m * 5, m * 3],
+            explain: `長いはりは60分で1回り（360°）するので、1分間に 360 ÷ 60 = 6（°）回ります。${m} × 6 = ${m * 6}（°）`,
         };
     },
 ]);

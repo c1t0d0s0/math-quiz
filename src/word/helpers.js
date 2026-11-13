@@ -77,7 +77,7 @@ function autoStep(answer) {
 /**
  * パターンの生成結果から4択問題を組み立てる
  *
- * res: { text, answer, unit?, prefix?, wrong?, step? }
+ * res: { text, answer, unit?, prefix?, wrong?, step?, explain? }  explain は解き方の文 (そのまま返す)
  *  - answer が数値: wrong（典型的な誤り）を優先し、足りない分は近い値で補う
  *  - answer が文字列: wrong に3つ以上の異なる誤答が必要
  */
@@ -94,7 +94,7 @@ export function buildQuestion(res, r) {
         if (options.length < 4) {
             throw new Error(`誤答が足りません: ${text}`);
         }
-        return { question: text, options: r.shuffle(options), answer };
+        return { question: text, options: r.shuffle(options), answer, explain: res.explain };
     }
 
     if (!Number.isFinite(answer) || answer <= 0) {
@@ -128,6 +128,7 @@ export function buildQuestion(res, r) {
         question: text,
         options: r.shuffle(values).map(fmt),
         answer: fmt(answer),
+        explain: res.explain,
     };
 }
 

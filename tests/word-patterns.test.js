@@ -9,6 +9,11 @@ const RUNS = 300;
 // 低学年の文で使ってよい漢字（1・2年で習い、教科書でも単位として使うもの）
 const LOW_KANJI = '円時分本人日';
 
+/** 解き方の文に、答えの数がすべて出てくるか (「1km500m」なら 1 と 500) */
+function explainsAnswer(explain, answer) {
+    return (String(answer).match(/\d+(\.\d+)?/g) || []).every(n => explain.includes(n));
+}
+
 function memoryStorage() {
     const data = new Map();
     return {
@@ -55,6 +60,11 @@ describe.each(all.map(p => [p.id, p]))('%s', (id, pattern) => {
             for (const opt of q.options) {
                 expect(opt, where).not.toMatch(/^\D*0(?![.\d])/);
             }
+            // 解き方の文があり、答えの数が出てくる
+            expect(typeof q.explain, where).toBe('string');
+            expect(q.explain.length, where).toBeGreaterThan(5);
+            expect(q.explain, where).not.toMatch(/NaN|undefined|Infinity|null|\[object|\d\.\d{4,}/);
+            expect(explainsAnswer(q.explain, q.answer), `${where} / ${q.explain}`).toBe(true);
         }
     });
 });
@@ -66,7 +76,7 @@ describe('学年に合わせた表記', () => {
         for (const pattern of patterns.low) {
             for (let i = 0; i < 50; i++) {
                 const q = generateFromPattern(pattern, r);
-                const used = [q.question, ...q.options].join('').match(kanji) || [];
+                const used = [q.question, ...q.options, q.explain].join('').match(kanji) || [];
                 const bad = used.filter(c => !LOW_KANJI.includes(c));
                 expect(bad, `${pattern.id}: ${q.question}`).toEqual([]);
             }

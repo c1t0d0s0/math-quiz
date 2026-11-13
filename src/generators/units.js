@@ -7,11 +7,20 @@ import { buildQuestion, compound, fmtNum, frac, fracWrongs } from '../word/helpe
 
 /** 「1.5m = ?cm」の形の問題。答えは v × factor。wrongFactors は、けたをまちがえたときの倍率 */
 function simple(v, from, to, factor, wrongFactors) {
+    const answer = Number(fmtNum(v * factor));
+    // 小さい単位にするときはかけ算、大きい単位にするときはわり算
+    const big = Math.round(1 / factor);
+    const explain = factor === 1
+        ? `1${from} = 1${to} なので、${fmtNum(v)}${from} = ${answer}${to}`
+        : factor > 1
+            ? `1${from} = ${factor}${to} なので、${fmtNum(v)} × ${factor} = ${answer}（${to}）`
+            : `${big}${from} = 1${to} なので、${fmtNum(v)} ÷ ${big} = ${answer}（${to}）`;
     return {
         text: `${fmtNum(v)}${from} = ?${to}`,
-        answer: Number(fmtNum(v * factor)),
+        answer,
         unit: to,
         wrong: wrongFactors.map(f => v * f),
+        explain,
     };
 }
 
@@ -27,6 +36,7 @@ function split(total, per, big, small) {
         answer: show(total),
         wrong: [...mistakes, show(total + per), show(total - per), show(total + 1), show(total - 1), show(total + 2)]
             .filter(w => !w.startsWith('0')),
+        explain: `${per}${small} = 1${big} なので、${total}${small} = ${total - (total % per)}${small} + ${total % per}${small} = ${show(total)}`,
     };
 }
 
@@ -34,7 +44,8 @@ function split(total, per, big, small) {
 function join(b, s, per, big, small) {
     const t = b * per + s;
     const wrong = per === 60 ? [b * 100 + s, b * 10 + s, t + 10] : [b * per / 10 + s, b * per * 10 + s, b + s];
-    return { text: `${b}${big}${s}${small} = ?${small}`, answer: t, unit: small, wrong };
+    const explain = `1${big} = ${per}${small} なので、${b}${big}${s}${small} = ${b * per}${small} + ${s}${small} = ${t}${small}`;
+    return { text: `${b}${big}${s}${small} = ?${small}`, answer: t, unit: small, wrong, explain };
 }
 
 /** min〜max のうち、step の倍数でない整数 */
@@ -168,6 +179,7 @@ const HIGH = {
                 text: `${m}分 = ?時間`,
                 answer: `${frac(m, 60)}時間`,
                 wrong: [frac(m, 100), ...fracWrongs(m, 60)].map(w => `${w}時間`),
+                explain: `1時間 = 60分 なので、${m}分は ${m}/60時間。約分して ${frac(m, 60)}時間`,
             };
         }),
         r => decimalTime(r, '分', '秒', 4),

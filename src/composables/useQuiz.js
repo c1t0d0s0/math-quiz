@@ -27,6 +27,8 @@ export function useQuiz(highScores) {
     const index = ref(0); // 今の問題が何問目か (0 から)
     const total = ref(0); // 問題の数 (計算・文章問題は 0)
     const elapsed = ref(0); // かかった秒数
+    // 問題の数が決まっているモードで、1問ずつの { question, given: 答え, correct } (結果の画面で、まちがえた問題を見せる)
+    const history = ref([]);
 
     let nextQuestion = null;
     let fixed = null; // 今日のチャレンジ・図形チャレンジの10問
@@ -85,6 +87,7 @@ export function useQuiz(highScores) {
         score.value = 0;
         index.value = 0;
         elapsed.value = 0;
+        history.value = [];
         if (next.kind === 'daily' || next.kind === 'zukei') {
             fixed = next.kind === 'daily' ? createDailyQuestions(next.level, jstDate()) : createZukeiSet(next.level);
             total.value = fixed.length;
@@ -121,6 +124,9 @@ export function useQuiz(highScores) {
         if (correct) {
             score.value++;
         }
+        if (fixed) {
+            history.value = [...history.value, { question: question.value, given: option, correct }];
+        }
         // さいごの問題に答えたら、答えを確かめている時間は数えない
         if (fixed && index.value + 1 >= total.value) {
             clearInterval(timer);
@@ -149,7 +155,7 @@ export function useQuiz(highScores) {
     onUnmounted(stopTimers);
 
     return {
-        screen, mode, score, timeLeft, question, selected, isNewRecord, reward, index, total, elapsed,
+        screen, mode, score, timeLeft, question, selected, isNewRecord, reward, index, total, elapsed, history,
         start, answer, next, restart, backToStart,
     };
 }

@@ -43,7 +43,7 @@ function zukeiQuestions(level, r) {
 
 /**
  * その日・その学年帯の10問。date は YYYY-MM-DD、level は 'low' | 'mid' | 'high'。
- * もどり値は、計算・文章問題が { question, options, answer, isWord }、
+ * もどり値は、計算・文章問題が { question, options, answer, isWord, explain }、
  * 図形問題が src/zukei/index.js の generateZukei の1問 (topic をもつ) の配列
  */
 export function createDailyQuestions(level, date) {
@@ -66,5 +66,6 @@ export function createDailyQuestions(level, date) {
         options: q.options.map(String),
         answer: String(q.answer),
         isWord: q.isWord,
+        explain: q.explain,
     }));
 }
