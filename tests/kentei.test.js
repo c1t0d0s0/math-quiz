@@ -14,11 +14,11 @@ describe('算数検定もぎ試験の級', () => {
         expect(KENTEI_LEVELS.map(l => l.grade)).toEqual([1, 2, 3, 4, 5, 6]);
     });
 
-    it('本番は 11〜9級が20問・40分、8〜6級が30問・50分。ミニは10問・20分と15問・25分', () => {
+    it('本番は 11〜9級が20問・40分、8〜6級が30問・50分。ミニは10問・10分と15問・13分', () => {
         for (const kyu of KYUS) {
             const big = kyu <= 8;
             expect([countOf(examLevel(kyu)), examLevel(kyu).minutes], `${kyu}級`).toEqual(big ? [30, 50] : [20, 40]);
-            expect([countOf(examLevel(kyu, true)), examLevel(kyu, true).minutes], `${kyu}級ミニ`).toEqual(big ? [15, 25] : [10, 20]);
+            expect([countOf(examLevel(kyu, true)), examLevel(kyu, true).minutes], `${kyu}級ミニ`).toEqual(big ? [15, 13] : [10, 10]);
         }
     });
 
@@ -43,7 +43,7 @@ describe('算数検定もぎ試験の級', () => {
         const kentei = MODES.filter(m => m.kind === 'kentei');
         expect(kentei).toHaveLength(12);
         expect(findMode('kentei-k8')).toMatchObject({ level: 8, mini: false, timeLimit: 50 * 60, grades: ['mid'] });
-        expect(findMode('kentei-mini-k11')).toMatchObject({ level: 11, mini: true, timeLimit: 20 * 60, grades: ['low'] });
+        expect(findMode('kentei-mini-k11')).toMatchObject({ level: 11, mini: true, timeLimit: 10 * 60, grades: ['low'] });
         expect(findMode('kentei-k6').grades).toEqual(['high']);
     });
 });

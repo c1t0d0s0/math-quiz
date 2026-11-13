@@ -34,7 +34,7 @@ export const passScore = count => Math.ceil((count * 7) / 10);
 export const passes = (level, score) => score >= passScore(countOf(level));
 
 /**
- * ミニ試験: 11〜9級は10問・20分、8〜6級は15問・25分。
+ * ミニ試験: 11〜9級は10問・10分、8〜6級は15問・13分（時間は本番の1問あたりの約半分）。
  * 分野ごとの問題数は本番に比例させ（あまりの大きい分野から1問ずつ足す）、どの分野も1問以上にする
  */
 function miniLevel(full) {
@@ -49,7 +49,7 @@ function miniLevel(full) {
         x.count++;
         left--;
     }
-    return { ...full, minutes: big ? 25 : 20, sections: shares.map(x => s(x.type, x.count)) };
+    return { ...full, minutes: big ? 13 : 10, sections: shares.map(x => s(x.type, x.count)) };
 }
 
 const FULL = new Map(KENTEI_LEVELS.map(level => [level.kyu, level]));
