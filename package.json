@@ -10,7 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "firebase": "^13.0.0",
+    "firebase": "^13.4.0",
     "qrcode": "^1.5.4",
     "vue": "^3.5.43"
   },
@@ -20,6 +20,8 @@
     "vitest": "^5.0.3"
   },
   "overrides": {
-    "@grpc/grpc-js": "^1.14.6"
+    "@grpc/grpc-js": "^1.14.7",
+    "websocket-driver": "^0.8.0",
+    "websocket-extensions": "^0.2.0"
   }
 }
