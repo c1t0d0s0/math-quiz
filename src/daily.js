@@ -61,7 +61,8 @@ export function createDailyQuestions(level, date) {
     // 図形問題 (1・2年は作らないので、乱数の使い方も前と同じ)
     const zukei = zukeiQuestions(level, r);
     // 計算と文章問題と図形問題をまぜてならべる
-    return r.shuffle([...calc, ...word, ...zukei]).map(q => (q.topic ? q : {
+    // 図形問題と推理パズル (4択でない問題) は、そのまま入れる
+    return r.shuffle([...calc, ...word, ...zukei]).map(q => (q.topic || q.type === 'arrange' ? q : {
         question: q.question,
         options: q.options.map(String),
         answer: String(q.answer),

@@ -4,6 +4,8 @@ import { patterns, generateFromPattern, createWordGenerator } from '../src/word/
 import { buildQuestion, fmtNum, frac } from '../src/word/helpers.js';
 
 const all = [...patterns.low, ...patterns.mid, ...patterns.high];
+// 4択の問題 (推理パズルは、ボタンで空欄をうめる問題なので tests/suiri.test.js でたしかめる)
+const choiceList = all.filter(p => !p.id.includes('-suiri-'));
 const RUNS = 300;
 
 // 低学年の文で使ってよい漢字（1・2年で習い、教科書でも単位として使うもの）
@@ -38,7 +40,7 @@ describe('文章問題パターンの登録', () => {
     });
 });
 
-describe.each(all.map(p => [p.id, p]))('%s', (id, pattern) => {
+describe.each(choiceList.map(p => [p.id, p]))('%s', (id, pattern) => {
     it('何度生成しても正しい形の4択になる', () => {
         const r = createRng(12345);
         for (let i = 0; i < RUNS; i++) {

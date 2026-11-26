@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import FillQuestion from './FillQuestion.vue';
+import ArrangeQuestion from './ArrangeQuestion.vue';
 import Figure from './figures/Figure.vue';
 import FigureList from './figures/FigureList.vue';
 import MemoPad from './MemoPad.vue';
@@ -58,6 +59,18 @@ const chosen = option => props.given === option;
                 <p class="zukei-topic">{{ section }}</p>
             </template>
         </FillQuestion>
+        <ArrangeQuestion
+            v-else-if="question.type === 'arrange'"
+            :key="index"
+            :question="question"
+            :selected="null"
+            :initial="Array.isArray(given) ? given : null"
+            @answer="values => emit('answer', values)"
+        >
+            <template #before>
+                <p class="zukei-topic">{{ section }}（推理）</p>
+            </template>
+        </ArrangeQuestion>
         <template v-else-if="question.type === 'pick'">
         <div id="question-box" class="sheet zukei-sheet">
             <p class="zukei-topic">{{ section }}</p>

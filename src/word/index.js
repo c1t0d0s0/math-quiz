@@ -14,17 +14,20 @@ import highNumbers from './high/numbers.js';
 import highRatio from './high/ratio.js';
 import highSpeed from './high/speed.js';
 import highGeometry from './high/geometry.js';
+import { suiriPatterns } from './suiri.js';
 
 /** 学年帯ごとの文章問題パターン */
 export const patterns = {
     low: [...lowAddSub, ...lowMeasure, ...lowKakezan],
-    mid: [...midDivision, ...midNumbers, ...midMeasure, ...midFractions],
-    high: [...highNumbers, ...highRatio, ...highSpeed, ...highGeometry],
+    mid: [...midDivision, ...midNumbers, ...midMeasure, ...midFractions, ...suiriPatterns.mid],
+    high: [...highNumbers, ...highRatio, ...highSpeed, ...highGeometry, ...suiriPatterns.high],
 };
 
-/** パターン1つから4択問題を作る */
+/** パターン1つから4択問題を作る (推理パズルは、4択にせず、ボタンで空欄をうめる問題のまま) */
 export function generateFromPattern(pattern, r = defaultRng) {
-    return { ...buildQuestion(pattern.generate(r), r), patternId: pattern.id };
+    const res = pattern.generate(r);
+    if (res.type === 'arrange') return { ...res, patternId: pattern.id };
+    return { ...buildQuestion(res, r), patternId: pattern.id };
 }
 
 /**

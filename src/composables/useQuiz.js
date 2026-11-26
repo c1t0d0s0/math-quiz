@@ -3,6 +3,7 @@ import { findMode, createGenerator } from '../modes.js';
 import { createDailyQuestions } from '../daily.js';
 import { createZukeiSet } from '../zukei/index.js';
 import { jstDate } from '../rewards.js';
+import { arrangeCorrect } from '../answers.js';
 
 // 正解・不正解を見せてから次の問題に進むまでの時間（ミリ秒）
 const CORRECT_DELAY = 400;
@@ -36,7 +37,8 @@ export function useQuiz(highScores) {
     let pending = null;
 
     /** 今の問題が、答えたあとに「つぎへ」を待つ問題 (図形問題) か */
-    const waitsForNext = () => mode.value?.kind === 'zukei' || !!question.value?.topic;
+    // 推理パズルも、手がかりと解き方を読めるように、答えたあとで待つ
+    const waitsForNext = () => mode.value?.kind === 'zukei' || !!question.value?.topic || question.value?.type === 'arrange';
 
     function stopTimers() {
         clearInterval(timer);
@@ -52,7 +54,7 @@ export function useQuiz(highScores) {
             return;
         }
         const q = nextQuestion();
-        question.value = q.type === 'fill'
+        question.value = q.type === 'fill' || q.type === 'arrange'
             ? q
             : { ...q, options: q.options.map(String), answer: String(q.answer), isWord: mode.value.kind === 'word' };
     }
@@ -118,9 +120,11 @@ export function useQuiz(highScores) {
         if (screen.value !== 'quiz' || selected.value !== null) return;
         selected.value = option;
         const fill = question.value.type === 'fill';
-        const correct = fill
-            ? option.length === question.value.blanks.length && option.every((v, i) => Number(v) === question.value.blanks[i])
-            : option === question.value.answer;
+        const correct = question.value.type === 'arrange'
+            ? arrangeCorrect(question.value, option)
+            : fill
+                ? option.length === question.value.blanks.length && option.every((v, i) => Number(v) === question.value.blanks[i])
+                : option === question.value.answer;
         if (correct) {
             score.value++;
         }

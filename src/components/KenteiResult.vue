@@ -4,6 +4,7 @@ import RewardBox from './RewardBox.vue';
 import { formatTime } from '../modes.js';
 import { SECTIONS } from '../kentei/levels.js';
 import { answerText } from '../kentei/exam.js';
+import { arrangeText } from '../answers.js';
 
 // 算数検定もぎ試験の結果。合格かどうか、分野ごとの正解の数、まちがえた問題と正しい答え
 const props = defineProps({
@@ -14,13 +15,14 @@ const props = defineProps({
 defineEmits(['restart', 'back', 'open']);
 
 /** まちがえた問題の問題文 */
-const promptOf = q => (q.type === 'choice' ? q.question : q.label || q.text);
+const promptOf = q => (q.type === 'choice' ? q.question : q.type === 'arrange' ? `${q.question}　${q.clues.join('　')}` : q.label || q.text);
 
 /** 自分の答え */
 function givenText(m) {
     // 答えなかった問題 (時間切れで終わったときは、時間切れと出す)
     if (!m.answered) return props.result.timedOut ? '（時間切れ）' : '答えなかった';
     if (m.given === null || m.given === undefined) return 'わからない';
+    if (m.q.type === 'arrange') return arrangeText(m.q, m.given);
     return Array.isArray(m.given) ? m.given.join('、') : m.given;
 }
 </script>

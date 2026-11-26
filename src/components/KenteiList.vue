@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { SECTIONS } from '../kentei/levels.js';
+import { arrangeText } from '../answers.js';
 
 // 算数検定もぎ試験の、問題の一覧 (問題用紙を見わたすところ)。
 // 分野ごとに、問題文のはじめと答えた答えをならべ、えらんだ問題を開く
@@ -17,13 +18,14 @@ const clock = computed(() => `${Math.floor(props.left / 60)}:${String(props.left
 const hurry = computed(() => props.left <= 300);
 const progress = computed(() => `${(props.answered / Math.max(1, props.questions.length)) * 100}%`);
 
-/** 問題文 (4択は問題文、数字を入れる問題は式か問題文) */
-const promptOf = q => (q.type === 'choice' ? q.question : q.label || q.text);
+/** 問題文 (4択と推理パズルは問題文、数字を入れる問題は式か問題文) */
+const promptOf = q => (q.type === 'choice' || q.type === 'arrange' ? q.question : q.label || q.text);
 
 /** 答えた答えを、短い文字にする */
-function givenText(value) {
+function givenText(value, q) {
     if (value === undefined) return '';
     if (value === null) return 'わからない';
+    if (q.type === 'arrange') return arrangeText(q, value);
     return Array.isArray(value) ? value.join('、') : value;
 }
 
@@ -34,7 +36,7 @@ const groups = computed(() => {
         if (out.length === 0 || out[out.length - 1].section !== q.section) {
             out.push({ section: q.section, label: SECTIONS[q.section].label, rows: [] });
         }
-        out[out.length - 1].rows.push({ i, prompt: promptOf(q), given: givenText(props.answers[i]), done: props.answers[i] !== undefined });
+        out[out.length - 1].rows.push({ i, prompt: promptOf(q), given: givenText(props.answers[i], q), done: props.answers[i] !== undefined });
     });
     return out;
 });

@@ -4,6 +4,7 @@ import { battleQuestions, isCorrect } from '../battle/questions.js';
 import { patterns as wordPatterns, generateFromPattern } from '../word/index.js';
 import { patterns as zukeiPatterns, generateZukei } from '../zukei/index.js';
 import { examLevel } from './levels.js';
+import { arrangeCorrect, arrangeText } from '../answers.js';
 
 // 算数検定もぎ試験の問題を作る。どの分野も、アプリにある問題の作り方をそのまま使い、学年で習う範囲にしぼる。
 //  - 計算: 対戦の問題 (src/battle/questions.js。学年別の暗算できる式) を、数字を入れて答える
@@ -118,6 +119,8 @@ const MAKERS = {
         while (chosen.length < count) chosen.push(r.pick(list));
         return chosen.map((pattern) => {
             let q = generateFromPattern(pattern, r);
+            // 推理パズル (3〜6年) は、ボタンで空欄をうめる問題のまま
+            if (q.type === 'arrange') return { ...q, section: 'word' };
             for (let i = 0; maxNumber && i < 200 && maxNumberIn(q.question + q.options.join(' ')) > maxNumber; i++) {
                 q = generateFromPattern(pattern, r);
             }
@@ -154,12 +157,14 @@ export function buildExam(kyu, mini = false, r = defaultRng) {
 /** 答えが合っているか。value は、4択ならえらんだ文字、数字を入れる問題なら入れた数の配列 (わからないときは null) */
 export function isRightAnswer(q, value) {
     if (value === null || value === undefined) return false;
+    if (q.type === 'arrange') return arrangeCorrect(q, value);
     if (q.type !== 'fill') return value === q.answer;
     return value.length === q.blanks.length && value.every((v, i) => isCorrect(v, q.blanks[i]));
 }
 
 /** その問題の正しい答え (結果の画面に出す) */
 export function answerText(q) {
+    if (q.type === 'arrange') return arrangeText(q, q.answer);
     if (q.type !== 'fill') return q.answer;
     return q.parts.map(p => (typeof p === 'string' ? p : q.blanks[p.blank])).join('').trim();
 }

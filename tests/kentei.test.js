@@ -60,7 +60,12 @@ describe('算数検定もぎ試験の問題', () => {
                 expect([...new Set(qs.map(q => q.section))]).toEqual(level.sections.map(x => x.type));
                 for (const q of qs) {
                     const where = `${kyu}級: ${q.question ?? q.label ?? q.text}`;
-                    if (q.type === 'fill') {
+                    if (q.type === 'arrange') {
+                        // 推理パズルは3〜6年の文章題だけ
+                        expect([q.section, kyu <= 9], where).toEqual(['word', true]);
+                        expect(isRightAnswer(q, q.answer), where).toBe(true);
+                        expect(isRightAnswer(q, [...q.answer].reverse()), where).toBe(false);
+                    } else if (q.type === 'fill') {
                         expect(q.blanks.length, where).toBeGreaterThan(0);
                         expect(q.parts.filter(p => typeof p !== 'string'), where).toHaveLength(q.blanks.length);
                         // 正しい答えを入れたら正解になる
@@ -76,7 +81,7 @@ describe('算数検定もぎ試験の問題', () => {
                     expect(JSON.stringify(q) + answerText(q), where).not.toMatch(/NaN|undefined/);
                 }
                 // 同じ試験に同じ問題は出さない
-                const texts = qs.map(q => q.question ?? q.label);
+                const texts = qs.map(q => (q.question ?? q.label) + (q.clues?.join('') ?? ''));
                 expect(new Set(texts).size, texts.join(' / ')).toBe(texts.length);
             }
         }

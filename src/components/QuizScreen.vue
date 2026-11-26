@@ -2,7 +2,8 @@
 import { ref, computed, watch, nextTick } from 'vue';
 import { formatTime } from '../modes.js';
 import FillQuestion from './FillQuestion.vue';
-import { correctText as answerText } from '../answers.js';
+import ArrangeQuestion from './ArrangeQuestion.vue';
+import { arrangeCorrect, correctText as answerText } from '../answers.js';
 import Figure from './figures/Figure.vue';
 import FigureList from './figures/FigureList.vue';
 import MemoPad from './MemoPad.vue';
@@ -24,6 +25,8 @@ defineEmits(['answer', 'next', 'quit']);
 const isFixed = computed(() => props.mode.kind === 'daily' || props.mode.kind === 'zukei');
 // 図形問題 (図形チャレンジと、今日のチャレンジにまざる図形問題)
 const isZukei = computed(() => props.mode.kind === 'zukei' || !!props.question.topic);
+// 推理パズル (ボタンで空欄をうめる問題)。答えたあとに、図形問題と同じく解き方を見せる
+const isArrange = computed(() => props.question.type === 'arrange');
 // 文章問題は、文字を小さめにして左によせる
 const isWord = computed(() => props.mode.kind === 'word' || !!props.question.isWord);
 
@@ -51,14 +54,16 @@ function optionClass(option) {
 const isCorrect = computed(() => {
     const q = props.question;
     if (props.selected === null) return false;
+    if (q.type === 'arrange') return arrangeCorrect(q, props.selected);
     if (q.type !== 'fill') return props.selected === q.answer;
     return props.selected.length === q.blanks.length && props.selected.every((v, i) => Number(v) === q.blanks[i]);
 });
 const correctText = computed(() => answerText(props.question));
-const isLast = computed(() => props.index + 1 >= props.total);
+// 問題の数が決まっているモードの、さいごの問題 (文章問題モードは時間まで続くので、さいごはない)
+const isLast = computed(() => isFixed.value && props.index + 1 >= props.total);
 const after = ref(null);
 watch(() => props.selected, async (value) => {
-    if (value === null || !isZukei.value) return;
+    if (value === null || !(isZukei.value || isArrange.value)) return;
     await nextTick();
     after.value?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 });
@@ -94,6 +99,17 @@ watch(() => props.selected, async (value) => {
                 <p class="zukei-topic">{{ question.topicLabel }}<span v-if="question.hirameki" class="zukei-hirameki">ひらめき</span></p>
             </template>
         </FillQuestion>
+        <ArrangeQuestion
+            v-else-if="isArrange"
+            :key="`a-${index}-${question.clues.join()}`"
+            :question="question"
+            :selected="selected"
+            @answer="values => $emit('answer', values)"
+        >
+            <template #before>
+                <p class="zukei-topic">推理</p>
+            </template>
+        </ArrangeQuestion>
         <template v-else-if="question.type === 'pick'">
         <div id="question-box" class="sheet zukei-sheet">
             <p class="zukei-topic">{{ question.topicLabel }}<span v-if="question.hirameki" class="zukei-hirameki">ひらめき</span></p>
@@ -134,8 +150,8 @@ watch(() => props.selected, async (value) => {
         </template>
         </div>
 
-        <!-- 図形チャレンジ: 答えたあとの解き方と「つぎへ」 -->
-        <section v-if="isZukei && selected !== null" ref="after" class="zukei-after" aria-live="polite">
+        <!-- 図形問題と推理パズル: 答えたあとの解き方と「つぎへ」 -->
+        <section v-if="(isZukei || isArrange) && selected !== null" ref="after" class="zukei-after" aria-live="polite">
             <p class="zukei-verdict">{{ isCorrect ? '正解！' : `ざんねん。正解は ${correctText}` }}</p>
             <p v-if="question.explain" class="zukei-explain"><b>解き方</b>{{ question.explain }}</p>
             <button id="zukei-next" type="button" class="btn btn-primary" @click="$emit('next')">{{ isLast ? '結果を見る' : 'つぎへ' }}</button>

@@ -1212,6 +1212,113 @@ button {
     text-align: center;
 }
 
+/* 推理パズル: 手がかりと、ボタンでうめる空欄 */
+:is(.quiz, .battle-page) .arrange-sheet {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    place-items: stretch;
+    gap: 0.5rem;
+}
+
+.arrange-clues {
+    display: grid;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0.6rem 0.9rem;
+    background: var(--mark-soft);
+    list-style: none;
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+.arrange-slots {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem 0.4rem;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.arrange-slot-wrap {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-areas: 'arrow label' 'arrow slot' 'arrow fix';
+    align-items: center;
+    justify-items: center;
+    column-gap: 0.4rem;
+}
+
+.arrange-arrow {
+    grid-area: arrow;
+    color: var(--muted);
+    font-size: 1.25rem;
+}
+
+.arrange-slot-label {
+    grid-area: label;
+    color: var(--muted);
+    font-size: 0.8125rem;
+    font-weight: 700;
+}
+
+.arrange-slot {
+    grid-area: slot;
+    min-width: 4.75rem;
+    min-height: 2.75rem;
+    padding: 0.25rem 0.5rem;
+    border: 0;
+    background: var(--paper);
+    box-shadow: 0 0 0 2px var(--rule);
+    font-family: var(--hand);
+    font-weight: 600;
+    font-size: 1.125rem;
+    cursor: pointer;
+}
+
+.arrange-slot.is-filled {
+    background: var(--mark);
+    box-shadow: 0 0 0 2px var(--ink);
+}
+
+.arrange-slot.correct {
+    background: var(--mark);
+    box-shadow: 0 0 0 2px var(--ink);
+}
+
+.arrange-slot.incorrect {
+    background: var(--red-soft);
+    color: var(--red);
+    box-shadow: 0 0 0 2px var(--red);
+    text-decoration: line-through;
+}
+
+.arrange-slot-wrap .fill-correct {
+    grid-area: fix;
+    font-family: var(--hand);
+    font-weight: 600;
+}
+
+.arrange-pad {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.arrange-token {
+    font-size: 1.25rem;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+}
+
+/* 使ったボタンは、うすくする */
+.arrange-token:disabled {
+    opacity: 0.35;
+}
+
 /* 図形チャレンジ */
 .zukei-mode .fill-sheet,
 .zukei-sheet {
@@ -1830,6 +1937,11 @@ button {
     background: var(--paper);
 }
 
+.pattern-list dd.pattern-arrange {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
 .pattern-list dd span.answer {
     background: var(--mark);
     box-shadow: 0 0 0 1px var(--ink);
@@ -1885,6 +1997,16 @@ button {
 
     .options-container.figure-options {
         grid-template-columns: 1fr 1fr;
+    }
+
+    /* 推理パズル: せまい画面では、ボタンの名前が1行に入るように小さくする */
+    .arrange-token {
+        font-size: 1.0625rem;
+    }
+
+    .arrange-slot {
+        min-width: 4.25rem;
+        font-size: 1rem;
     }
 
     .figure-steps > .figure,
@@ -2002,6 +2124,15 @@ button {
         min-height: clamp(20rem, 100dvh - 12rem, 38rem);
         margin-top: 0;
         padding: 2rem 2.5rem;
+    }
+
+    .quiz-body .arrange-pad {
+        margin-top: 0;
+        align-content: start;
+    }
+
+    .quiz-body .arrange-pad .key {
+        min-height: 4.5rem;
     }
 
     .quiz-body .number-pad {

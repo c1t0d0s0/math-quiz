@@ -66,8 +66,13 @@ describe('今日のチャレンジの問題', () => {
             for (const level of LEVELS) {
                 const qs = createDailyQuestions(level, date);
                 const where = `${date} ${level}`;
-                expect(new Set(qs.map(q => q.question ?? q.text)).size, where).toBe(DAILY_COUNT);
-                for (const q of qs.filter(x => !x.topic)) {
+                // 推理パズルは問題文が同じでも手がかりがちがうので、手がかりも合わせてくらべる
+                expect(new Set(qs.map(q => (q.question ?? q.text) + (q.clues?.join('') ?? ''))).size, where).toBe(DAILY_COUNT);
+                for (const q of qs.filter(x => x.type === 'arrange')) {
+                    expect(q.isWord, where).toBe(true);
+                    expect([...q.answer].sort(), where).toEqual([...q.tokens].sort());
+                }
+                for (const q of qs.filter(x => !x.topic && x.type !== 'arrange')) {
                     expect(q.options, `${where}: ${q.question}`).toHaveLength(4);
                     expect(new Set(q.options).size, `${where}: ${q.question}`).toBe(4);
                     expect(q.options, `${where}: ${q.question}`).toContain(q.answer);

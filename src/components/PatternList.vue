@@ -5,6 +5,7 @@ import FigureList from './figures/FigureList.vue';
 import { patterns, generateFromPattern } from '../word/index.js';
 import { problems, generateProblem } from '../long/index.js';
 import { patterns as zukeiPatterns, generateZukei } from '../zukei/index.js';
+import { arrangeText } from '../answers.js';
 
 const LEVELS = [['low', '1・2年'], ['mid', '3・4年'], ['high', '5・6年']];
 const LONG_LEVELS = [['g3', '3年'], ['g45', '4・5年'], ['g6', '6年']];
@@ -72,7 +73,13 @@ function zukeiAnswer(q) {
                     <h3>{{ topic }}（{{ samples.length }}）</h3>
                     <dl v-for="q in samples" :key="q.id">
                         <dt><code>{{ q.id }}</code> {{ q.question }}</dt>
-                        <dd>
+                        <!-- 推理パズル: 手がかり・答え・解き方 -->
+                        <dd v-if="q.type === 'arrange'" class="pattern-arrange">
+                            <span v-for="c in q.clues" :key="c">{{ c }}</span>
+                            <span class="answer">{{ arrangeText(q, q.answer) }}</span>
+                            <span>{{ q.explain }}</span>
+                        </dd>
+                        <dd v-else>
                             <span v-for="o in q.options" :key="o" :class="{ answer: o === q.answer }">{{ o }}</span>
                         </dd>
                     </dl>

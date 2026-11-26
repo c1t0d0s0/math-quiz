@@ -54,7 +54,7 @@ const missed = computed(() => (props.mode.kind === 'daily'
                         <span class="kentei-missed-question">{{ promptText(m.question) }}</span>
                         <FigureList v-if="m.question.figure" :figure="m.question.figure" />
                         <span class="kentei-missed-answer">正しい答え: <b>{{ correctText(m.question) }}</b></span>
-                        <span class="kentei-missed-given">あなたの答え: {{ givenText(m.given) }}</span>
+                        <span class="kentei-missed-given">あなたの答え: {{ givenText(m.given, m.question) }}</span>
                         <p v-if="m.question.explain" class="daily-explain"><b>解き方</b>{{ m.question.explain }}</p>
                     </li>
                 </ol>
