@@ -34,7 +34,7 @@ const todayLabel = `${Number(today.slice(5, 7))}月${Number(today.slice(8))}日�
 const KINDS = [
     { kind: 'daily', title: `今日のチャレンジ　${todayLabel}`, note: `毎日かわる${DAILY_COUNT}問。同じ日は、だれが開いても同じ問題が出ます。時間はむせいげんです。` },
     { kind: 'calc', title: '計算', note: '時間内に何問とけるかな。答えは4つの中からえらびます。' },
-    { kind: 'word', title: '文章問題', note: '5分間でできるだけたくさん。いろいろな場面の問題が出ます。' },
+    { kind: 'word', title: '文章問題', note: '10分間でできるだけたくさん。いろいろな場面の問題が出ます。' },
     { kind: 'zukei', title: '図形チャレンジ', note: `図を見て考える${ZUKEI_COUNT}問。時間はむせいげんで、答えたあとに解き方が見られます。` },
     { kind: 'long', title: '長文チャレンジ', note: `長い文章を3題、小問は全部で${LONG_TOTAL}問。時間はむせいげんで、答えは10この中からえらびます。` },
     { kind: 'kentei', title: '算数検定もぎ試験', note: '算数検定と同じ問題数・時間で、11級（1年生）〜6級（6年生）にちょうせん。計算と図形は数字を入れ、文章題と単位は4つからえらびます。答え合わせはさいごにまとめてします。7割以上正解で合格です。' },

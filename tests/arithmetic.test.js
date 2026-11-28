@@ -73,10 +73,10 @@ describe('モード定義', () => {
         });
     });
 
-    it('文章問題は学年帯ごとに3モードあり、5分である', () => {
+    it('文章問題は学年帯ごとに3モードあり、10分である', () => {
         const word = MODES.filter(m => m.kind === 'word');
         expect(word.map(m => m.id)).toEqual(['word-low', 'word-mid', 'word-high']);
-        expect(word.every(m => m.timeLimit === 300)).toBe(true);
+        expect(word.every(m => m.timeLimit === 600)).toBe(true);
     });
 
     it('どのモードも出題できる', () => {
