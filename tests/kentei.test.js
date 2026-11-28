@@ -65,6 +65,8 @@ describe('算数検定もぎ試験の問題', () => {
                         expect([q.section, kyu <= 9], where).toEqual(['word', true]);
                         expect(isRightAnswer(q, q.answer), where).toBe(true);
                         expect(isRightAnswer(q, [...q.answer].reverse()), where).toBe(false);
+                        // メモの表の見出し
+                        expect(q.table.rows.length, where).toBe(q.slots.length);
                     } else if (q.type === 'fill') {
                         expect(q.blanks.length, where).toBeGreaterThan(0);
                         expect(q.parts.filter(p => typeof p !== 'string'), where).toHaveLength(q.blanks.length);

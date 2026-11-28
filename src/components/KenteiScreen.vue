@@ -118,6 +118,6 @@ const chosen = option => props.given === option;
         </nav>
 
         <!-- 計算や考えたことのメモ。ほかの問題に移ると消える -->
-        <MemoPad :reset-key="index" />
+        <MemoPad :reset-key="index" :table="question.table ?? null" />
     </main>
 </template>

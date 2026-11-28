@@ -2384,6 +2384,112 @@ button {
     outline-offset: -1px;
 }
 
+/* 推理パズルの表のメモ。入りきらないときは、表の中だけでスクロールする */
+.memo-table-wrap {
+    height: 100%;
+    overflow: auto;
+    overscroll-behavior: contain;
+    border: 1px solid var(--rule-soft);
+    border-radius: 0.5rem;
+    background: var(--paper);
+}
+
+.memo-table {
+    margin: 0 auto;
+    border-collapse: collapse;
+    color: var(--ink);
+}
+
+.memo-table th,
+.memo-table td {
+    border: 1px solid var(--rule-soft);
+    padding: 0;
+    text-align: center;
+}
+
+.memo-table thead th {
+    width: 2.6rem;
+    padding: 0.25rem 0.1rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.memo-table tbody th {
+    padding: 0 0.4rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    white-space: nowrap;
+    text-align: left;
+}
+
+.memo-table.is-tall thead th {
+    padding: 0.3rem 0;
+    vertical-align: bottom;
+}
+
+.memo-table.is-tall .memo-col {
+    display: inline-block;
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    letter-spacing: 0.05em;
+}
+
+/* オス・メスなど、ちがうまとまりの列の前に太い線 */
+.memo-table .is-group {
+    border-left: 3px solid var(--rule);
+}
+
+.memo-cell {
+    display: block;
+    width: 2.6rem;
+    height: 2.4rem;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    font-family: var(--hand);
+    font-size: 1.375rem;
+    line-height: 1;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.memo-cell:focus-visible {
+    outline: 2px solid var(--rule);
+    outline-offset: -2px;
+}
+
+.memo-cell.is-maru {
+    color: var(--red);
+    font-weight: 700;
+}
+
+.memo-cell.is-batsu {
+    color: var(--muted);
+}
+
+@media (max-width: 30rem) {
+    .memo-table thead th,
+    .memo-cell {
+        width: 2.1rem;
+    }
+
+    .memo-table thead th {
+        font-size: 0.6875rem;
+    }
+
+    .memo-table tbody th {
+        padding: 0 0.3rem;
+        font-size: 0.8125rem;
+    }
+
+    .memo-cell {
+        height: 2.2rem;
+        font-size: 1.25rem;
+    }
+}
+
 @media (min-width: 64rem) {
     /* 広い画面では右下のカードにして、問題を広く見せる */
     .memo-panel {

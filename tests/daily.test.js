@@ -71,6 +71,8 @@ describe('今日のチャレンジの問題', () => {
                 for (const q of qs.filter(x => x.type === 'arrange')) {
                     expect(q.isWord, where).toBe(true);
                     expect([...q.answer].sort(), where).toEqual([...q.tokens].sort());
+                    // メモの表の見出し
+                    expect(q.table.rows.length, where).toBe(q.slots.length);
                 }
                 for (const q of qs.filter(x => !x.topic && x.type !== 'arrange')) {
                     expect(q.options, `${where}: ${q.question}`).toHaveLength(4);

@@ -51,6 +51,15 @@ describe.each(all.map(p => [p.id, p]))('%s', (id, pattern) => {
             for (const text of [q.question, ...q.clues, q.explain, arrangeText(q, q.answer)]) {
                 expect(text, where).not.toMatch(/NaN|undefined|null|\[object/);
             }
+            // メモの表: 順番は 人 × 順位、組み合わせは 人 × もの (動物はオス・メスの列も)
+            const [people, things] = q.arrow ? [q.tokens, q.slots] : [q.slots, q.tokens];
+            expect([...q.table.rows].sort(), where).toEqual([...people].sort());
+            const cols = q.table.groups ? q.table.cols.slice(0, q.table.groups[0]) : q.table.cols;
+            expect([...cols].sort(), where).toEqual([...things].sort());
+            if (q.table.groups) {
+                expect(q.table.groups, where).toEqual([things.length, 2]);
+                expect(q.table.cols.slice(things.length), where).toEqual(['オス', 'メス']);
+            }
             // 解き方に答えが出てくる
             for (const a of q.answer) expect(q.explain, where).toContain(a);
         }

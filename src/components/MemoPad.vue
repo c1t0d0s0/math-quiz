@@ -1,17 +1,20 @@
 <script setup>
-import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 
 // 問題を解くときのメモ。手書き (スマホ・タブレット向け) と文字入力を切りかえて使う。
-// 1問ごとの一時的なものなので、どこにも保存しない
+// 推理パズルでは、○×を書きこむ「表」も使える。1問ごとの一時的なものなので、どこにも保存しない
 const props = defineProps({
     // この値が変わったら (次の問題に進んだら) メモを消す
     resetKey: { default: null },
+    // 表の見出し { rows, cols, groups? } (推理パズルのときだけ。src/word/suiri.js)
+    table: { type: Object, default: null },
 });
 
 const isTouch = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+const defaultTab = isTouch ? 'draw' : 'text';
 
 const open = ref(false);
-const tab = ref(isTouch ? 'draw' : 'text');
+const tab = ref(props.table ? 'table' : defaultTab);
 const tool = ref('pen'); // 'pen' | 'eraser'
 const text = ref('');
 const textarea = ref(null);
@@ -23,7 +26,39 @@ let strokes = [];
 let current = null;
 const hasStrokes = ref(false);
 
+// ---- 表 ----
+// マスの印。押すたびに 空 → × → ○ → 空
+const MARKS = ['', '×', '○'];
+const marks = ref({});
+const hasMarks = computed(() => Object.values(marks.value).some(Boolean));
+const cellKey = (i, j) => `${i}-${j}`;
+function toggleCell(i, j) {
+    const k = cellKey(i, j);
+    marks.value = { ...marks.value, [k]: MARKS[(MARKS.indexOf(marks.value[k] ?? '') + 1) % MARKS.length] };
+}
+function clearTable() {
+    marks.value = {};
+}
+// 区切り線を引く列 (オス・メスのまとまりの最初の列)
+const groupStarts = computed(() => {
+    const starts = new Set();
+    let at = 0;
+    for (const size of props.table?.groups ?? []) {
+        if (at > 0) starts.add(at);
+        at += size;
+    }
+    return starts;
+});
+// 「ハムスター」など長い見出しは、せまい列に入るように縦書きにする
+const tallHead = computed(() => !!props.table?.cols.some(c => c.length > 3));
+// 表のある問題では「表」を、ない問題では手書きか文字を開く
+watch(() => props.table, (t) => {
+    if (t) tab.value = 'table';
+    else if (tab.value === 'table') tab.value = defaultTab;
+});
+
 function clearAll() {
+    clearTable();
     text.value = '';
     strokes = [];
     current = null;
@@ -189,6 +224,15 @@ onUnmounted(() => {
         <div class="memo-head">
             <div class="memo-tabs" role="tablist">
                 <button
+                    v-if="table"
+                    type="button"
+                    role="tab"
+                    class="memo-tab"
+                    :class="{ 'is-active': tab === 'table' }"
+                    :aria-selected="tab === 'table'"
+                    @click="selectTab('table')"
+                >表</button>
+                <button
                     type="button"
                     role="tab"
                     class="memo-tab"
@@ -212,10 +256,35 @@ onUnmounted(() => {
                     <button type="button" class="memo-tool" :class="{ 'is-active': tool === 'eraser' }" :aria-pressed="tool === 'eraser'" @click="tool = 'eraser'">消しゴム</button>
                     <button type="button" class="memo-tool" :disabled="!hasStrokes" @click="clearDrawing">ぜんぶ消す</button>
                 </template>
+                <button v-else-if="tab === 'table'" type="button" class="memo-tool" :disabled="!hasMarks" @click="clearTable">ぜんぶ消す</button>
                 <button v-else type="button" class="memo-tool" :disabled="!text" @click="text = ''">ぜんぶ消す</button>
             </div>
         </div>
         <div class="memo-body">
+            <div v-if="table" v-show="tab === 'table'" class="memo-table-wrap">
+                <table class="memo-table" :class="{ 'is-tall': tallHead }" aria-label="表のメモ">
+                    <thead>
+                        <tr>
+                            <th scope="col"></th>
+                            <th v-for="(c, j) in table.cols" :key="j" scope="col" :class="{ 'is-group': groupStarts.has(j) }"><span class="memo-col">{{ c }}</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(row, i) in table.rows" :key="i">
+                            <th scope="row">{{ row }}</th>
+                            <td v-for="(c, j) in table.cols" :key="j" :class="{ 'is-group': groupStarts.has(j) }">
+                                <button
+                                    type="button"
+                                    class="memo-cell"
+                                    :class="{ 'is-maru': marks[cellKey(i, j)] === '○', 'is-batsu': marks[cellKey(i, j)] === '×' }"
+                                    :aria-label="`${row}・${c}: ${marks[cellKey(i, j)] || '空'}`"
+                                    @click="toggleCell(i, j)"
+                                >{{ marks[cellKey(i, j)] }}</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
             <canvas
                 v-show="tab === 'draw'"
                 ref="canvas"

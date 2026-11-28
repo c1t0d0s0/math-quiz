@@ -157,6 +157,6 @@ watch(() => props.selected, async (value) => {
             <button id="zukei-next" type="button" class="btn btn-primary" @click="$emit('next')">{{ isLast ? '結果を見る' : 'つぎへ' }}</button>
         </section>
 
-        <MemoPad :reset-key="question" />
+        <MemoPad :reset-key="question" :table="question.table ?? null" />
     </main>
 </template>

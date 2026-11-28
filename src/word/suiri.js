@@ -7,7 +7,8 @@ import { names } from './vocab.js';
 // 1問の形 (type: 'arrange'):
 //   { type, question, clues: ['ア. …'], slots: ['1位', …], tokens: ['さち', …], answer: ['ゆみ', …], arrow, explain, isWord }
 //   slots は空欄の見出し、tokens は空欄に入れるボタン (順番はまぜてある)、answer は空欄ごとの正しい答え。
-//   arrow が true なら、順番の問題 (空欄を → でつなぐ)
+//   arrow が true なら、順番の問題 (空欄を → でつなぐ)。
+//   table は、メモの「表」 ({ rows, cols, groups? }。groups は区切り線を引く列のまとまり) の見出し
 
 const LABELS = ['ア', 'イ', 'ウ', 'エ', 'オ', 'カ'];
 
@@ -202,6 +203,8 @@ function orderingFrom(scene, who, order, picked, n, r) {
         tokens: r.shuffle(who),
         answer,
         arrow: true,
+        // メモの「表」 (人 × 順位) の見出し
+        table: { rows: [...who], cols: [...slots] },
         explain: [
             ...lines,
             pairText(clues, lines.length > 0, '合わせてためすと、', 'ならび方は1通りに決まります。'),
@@ -334,6 +337,10 @@ export function matchingPuzzle(r, { n, min, max, attrs = r.bool() }) {
             tokens: r.shuffle(items),
             answer,
             arrow: false,
+            // メモの「表」 (人 × もの。特ちょうのある場面は、オス・メスの列も足す) の見出し
+            table: attr
+                ? { rows: [...who], cols: [...items, ...scene.attrs], groups: [n, scene.attrs.length] }
+                : { rows: [...who], cols: [...items] },
             explain: [
                 ...lines,
                 pairText(clues, lines.length > 0, '合わせて、', `${n}人ともちがうことを使うと、1通りに決まります。`),
